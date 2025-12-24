@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from position import Position
 
 
@@ -5,12 +6,16 @@ class Movement:
     start_pos: Position
     end_pos: Position
 
-    def __init__(self, start_pos, end_pos):
+    @abstractmethod
+    def from_string(p: str):
+        return Movement(Position(ord(p[0]) - ord('a') + 1, int(p[1])), Position(ord(p[2]) - ord('a') + 1, int(p[3])))
+
+    def __init__(self, start_pos: Position, end_pos: Position):
         self.start_pos = start_pos
         self.end_pos = end_pos
 
     def __repr__(self):
-        return self.start_pos + "-" + self.end_pos
+        return self.start_pos + self.end_pos
 
     def is_valid(self):
         # Placeholder for movement validation logic
