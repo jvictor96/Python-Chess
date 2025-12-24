@@ -1,15 +1,34 @@
 import json
 from movement import Movement
 from piece import Piece, PieceSerializer
+from position import Position
 
 
 class Board:
     movements: list[Movement]
     pieces: list[Piece]
-    
-    def __init__(self):
-        pieces: list[Piece] = []
-        movements: list[Movement] = []
+    positions: dict[Position, Piece]
+
+    def __init__(self, pieces=None, movements=None):
+        self.pieces: list[Piece] = []
+        self.movements: list[Movement] = []
+        self.positions = {piece.position: piece for piece in self.pieces} 
+
+    def display(self) -> list[str]:
+        board_representation = []
+        for y in range(8, 0, -1):
+            row = ""
+            for x in range(1, 9):
+                pos = Position(x, y)
+                piece = self.positions.get(pos)
+                if piece:
+                    piece_symbol = PieceSerializer.serialize(piece)["piece"]
+                    row += piece_symbol + " "
+                else:
+                    row += ". "
+            board_representation.append(row.strip())
+        return board_representation
+        
 
     @staticmethod
     def get_board(address: str) -> "Board":
