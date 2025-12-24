@@ -23,26 +23,38 @@ class Piece(ABC):
 class Rook(Piece):
     def __init__(self, color, position):
         super().__init__(color, position)
+    def validate_movement(self, movement: Movement) -> str:
+        pass
 
 class Knight(Piece):
     def __init__(self, color, position):
         super().__init__(color, position)
+    def validate_movement(self, movement: Movement) -> str:
+        pass
 
 class Bishop(Piece):
     def __init__(self, color, position):
         super().__init__(color, position)
+    def validate_movement(self, movement: Movement) -> str:
+        pass
 
 class Queen(Piece):
     def __init__(self, color, position):
         super().__init__(color, position)
+    def validate_movement(self, movement: Movement) -> str:
+        pass
 
 class King(Piece):
     def __init__(self, color, position):
         super().__init__(color, position)
+    def validate_movement(self, movement: Movement) -> str:
+        pass
 
 class Pawn(Piece):
     def __init__(self, color, position):
         super().__init__(color, position)
+    def validate_movement(self, movement: Movement) -> str:
+        pass
 
 
 piece_map = {
@@ -71,4 +83,4 @@ class PieceSerializer:
         color = data["color"]
         piece_type = data["piece"]
         position = data["position"]
-        return piece_map[piece_type](color, position)
+        return piece_map[piece_type](color, Position.from_string(position))

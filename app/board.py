@@ -9,10 +9,10 @@ class Board:
     pieces: list[Piece]
     positions: dict[Position, Piece]
 
-    def __init__(self, pieces=None, movements=None):
-        self.pieces: list[Piece] = []
-        self.movements: list[Movement] = []
-        self.positions = {piece.position: piece for piece in self.pieces} 
+    def __init__(self, pieces: list[Piece] = None, movements=None):
+        self.pieces: list[Piece] = pieces
+        self.movements: list[Movement] = movements
+        self.positions = {piece.position: piece for piece in pieces} 
 
     def display(self) -> list[str]:
         board_representation = []
@@ -32,11 +32,11 @@ class Board:
 
     @staticmethod
     def get_board(address: str) -> "Board":
-        board = Board()
+        board: Board
         with open(address, "r") as file:
             game = json.load(file)
-            board.pieces = game["pieces"]
-            board.movements = game["movements"]
+            board = Board(
+                [PieceSerializer.deserialize(piece) for piece in game["pieces"]], game["movements"])
         return board
     
     def save_board(self, address: str):
