@@ -25,7 +25,7 @@ class Movement:
 
     def is_valid(self):
         return all([
-            self.is_there_a_piece_in_the_origin(),
+            self.is_the_path_clear(),
             self.is_the_destination_different_from_origin_and_in_the_board(),
             self.is_destinarion_free(),
             self.is_the_player_turn(),
@@ -36,6 +36,8 @@ class Movement:
 
     def is_the_path_clear(self):
         piece = self.get_piece_in_the_origin()
+        if piece is None:
+            return False
         if piece.__class__.__name__ in ["Knight", "King", "Pawn"]:
             return True
         return True

@@ -9,6 +9,7 @@ class Board:
     movements: list[Movement]
     pieces: list[Piece]
     positions: dict[Position, Piece]
+    legal: bool
 
     def __init__(self, pieces: list[Piece] = None, movements=None):
         self.pieces: list[Piece] = pieces
@@ -59,15 +60,33 @@ class Board:
         return piece.is_movement_valid(movement.end_pos)
 
     @abstractmethod
-    def move(self, game_id: str, movement: str):
+    def move(game_id: str, movement: str):
         board = Board.get_board(game_id)
         movement = Movement.from_string(movement, board.positions)
-        if not movement.is_valid(): return False
-        if game_id > 1000:
+        if movement.is_valid():
+            board.legal = True
+        else:
+            board.legal = False 
+        if board.legal:
             piece = board.positions.get(movement.start_pos)
             board.movements.append(movement)
             board.positions.pop(movement.start_pos)
             board.positions[movement.end_pos] = piece
             board.pieces = [piece for pos, piece in board.positions.items()]
+        if game_id > 1000:
             board.save_board(game_id)
-        return True
+        return board
+
+    def keep_moving(self, movement: str):
+        movement = Movement.from_string(movement, self.positions)
+        if movement.is_valid():
+            self.legal = True
+        else:
+            self.legal = False 
+        if self.legal:
+            piece = self.positions.get(movement.start_pos)
+            self.movements.append(movement)
+            self.positions.pop(movement.start_pos)
+            self.positions[movement.end_pos] = piece
+            self.pieces = [piece for pos, piece in self.positions.items()]
+        return self
