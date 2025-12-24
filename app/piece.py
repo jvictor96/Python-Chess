@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 from enum import Enum
 
-from movement import Movement
 from position import Position
 
 class Color(Enum):
@@ -17,43 +16,43 @@ class Piece(ABC):
         self.position = position
 
     @abstractmethod
-    def validate_movement(self, movement: Movement) -> str:
+    def is_movement_valid(self, destination: dict[Position, "Piece"]) -> bool:
         pass
 
 class Rook(Piece):
     def __init__(self, color, position):
         super().__init__(color, position)
-    def validate_movement(self, movement: Movement) -> str:
+    def is_movement_valid(self, destination: dict[Position, "Piece"]) -> bool:
         pass
 
 class Knight(Piece):
     def __init__(self, color, position):
         super().__init__(color, position)
-    def validate_movement(self, movement: Movement) -> str:
+    def is_movement_valid(self, destination: dict[Position, "Piece"]) -> bool:
         pass
 
 class Bishop(Piece):
     def __init__(self, color, position):
         super().__init__(color, position)
-    def validate_movement(self, movement: Movement) -> str:
+    def is_movement_valid(self, destination: dict[Position, "Piece"]) -> bool:
         pass
 
 class Queen(Piece):
     def __init__(self, color, position):
         super().__init__(color, position)
-    def validate_movement(self, movement: Movement) -> str:
+    def is_movement_valid(self, destination: dict[Position, "Piece"]) -> bool:
         pass
 
 class King(Piece):
     def __init__(self, color, position):
         super().__init__(color, position)
-    def validate_movement(self, movement: Movement) -> str:
+    def is_movement_valid(self, destination: dict[Position, "Piece"]) -> bool:
         pass
 
 class Pawn(Piece):
     def __init__(self, color, position):
         super().__init__(color, position)
-    def validate_movement(self, movement: Movement) -> str:
+    def is_movement_valid(self, destination: dict[Position, "Piece"]) -> bool:
         pass
 
 

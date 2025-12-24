@@ -1,3 +1,4 @@
+from abc import abstractmethod
 import json
 from movement import Movement
 from piece import Piece, PieceSerializer
@@ -31,16 +32,16 @@ class Board:
         
 
     @staticmethod
-    def get_board(address: str) -> "Board":
+    def get_board(game_id: int) -> "Board":
         board: Board
-        with open(address, "r") as file:
+        with open(f"app/games/game_{game_id}.txt", "r") as file:
             game = json.load(file)
             board = Board(
                 [PieceSerializer.deserialize(piece) for piece in game["pieces"]], game["movements"])
         return board
     
-    def save_board(self, address: str):
-        with open(address, "w") as file:
+    def save_board(self, game_id: int):
+        with open(f"app/games/game_{game_id}.txt", "w") as file:
             game = {
                 "pieces": [PieceSerializer.serialize(piece) for piece in self.pieces],
                 "movements": self.movements
@@ -50,7 +51,23 @@ class Board:
     
     def add_piece(self, piece: Piece):
         self.pieces.append(piece)
-    
-    def add_movement(self, movement: Movement):
-        if not movement.is_valid(): return
-        self.movements.append(movement)
+
+    def validate_move(self, movement: Movement) -> bool:
+        piece = self.positions.get(movement.start_pos)
+        if piece is None:
+            return False
+        return piece.is_movement_valid(movement.end_pos)
+
+    @abstractmethod
+    def move(self, game_id: str, movement: str):
+        board = Board.get_board(game_id)
+        movement = Movement.from_string(movement, board.positions)
+        if not movement.is_valid(): return False
+        if game_id > 1000:
+            piece = board.positions.get(movement.start_pos)
+            board.movements.append(movement)
+            board.positions.pop(movement.start_pos)
+            board.positions[movement.end_pos] = piece
+            board.pieces = [piece for pos, piece in board.positions.items()]
+            board.save_board(game_id)
+        return True
