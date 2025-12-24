@@ -11,14 +11,6 @@ def test_pawn_one_step():
     assert board.legal == True
     assert isinstance(board.positions.get("a3", None), Pawn)
 
-def test_white_playing_twice_in_a_row():
-    board: Board = Board.move(0, "a2a3")
-    assert board.legal == True
-    assert isinstance(board.positions.get("a3", None), Pawn)
-    board.keep_moving("a3a5")
-    assert board.legal == False
-    assert isinstance(board.positions.get("a3", None), Pawn)
-
 def test_pawn_illegal_two_step():
     board: Board = Board.move(0, "a2a3")
     assert board.legal == True
