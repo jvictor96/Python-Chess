@@ -11,6 +11,12 @@ def test_pawn_one_step():
     assert board.legal == True
     assert isinstance(board.positions.get("a3", None), Pawn)
 
+def test_pawn_step_back():
+    board = Board.move(0, "a2a3")
+    board.keep_moving("a3a2")
+    assert board.legal == False
+    assert isinstance(board.positions.get("a3", None), Pawn)
+
 def test_pawn_illegal_two_step():
     board: Board = Board.move(0, "a2a3")
     assert board.legal == True

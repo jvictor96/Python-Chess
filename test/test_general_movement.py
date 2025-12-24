@@ -19,6 +19,11 @@ def test_white_playing_to_the_same_location():
     assert board.legal == False
     assert isinstance(board.positions.get("a2", None), Pawn)
 
+def test_black_move_first():
+    board: Board = Board.move(0, "a7a6")
+    assert board.legal == False
+    assert isinstance(board.positions.get("a7", None), Pawn)
+
 def test_first_movement_is_invalid_white_plays_again():
     board: Board = Board.move(0, "a2a2")
     assert board.legal == False
