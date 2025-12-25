@@ -41,6 +41,15 @@ class Board:
                 [PieceSerializer.deserialize(piece) for piece in game["pieces"]], game["movements"])
         return board
     
+    def bypass_validation_move(self, movement: str):
+        movement = Movement.from_string(movement, self.positions)
+        piece = self.positions.get(movement.start_pos)
+        self.movements.append(movement)
+        self.positions.pop(movement.start_pos)
+        self.positions[movement.end_pos] = piece
+        self.pieces = [piece for pos, piece in self.positions.items()]
+        return self
+
     def save_board(self, game_id: int):
         with open(f"app/games/game_{game_id}.txt", "w") as file:
             game = {
@@ -73,7 +82,7 @@ class Board:
             board.positions.pop(movement.start_pos)
             board.positions[movement.end_pos] = piece
             board.pieces = [piece for pos, piece in board.positions.items()]
-        if game_id > 1000:
+        if game_id > 0:
             board.save_board(game_id)
         return board
 
