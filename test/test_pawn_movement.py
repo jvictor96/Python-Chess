@@ -49,14 +49,14 @@ def test_pawn_illegal_two_step(pawn_out_to_a3: Board):
     assert isinstance(pawn_out_to_a3.positions.get("a3", None), Pawn)
 
 def test_locked_pawn(knight_out_to_c3: Board):
-    knight_out_to_c3.move("a2a3")
+    knight_out_to_c3.move("c2c3")
     assert knight_out_to_c3.legal == False
-    assert isinstance(knight_out_to_c3.positions.get("a2", None), Pawn)
+    assert isinstance(knight_out_to_c3.positions.get("c2", None), Pawn)
 
 def test_locked_pawn_two_step(knight_out_to_c3: Board):
-    knight_out_to_c3.move("a2a4")
+    knight_out_to_c3.move("c2c4")
     assert knight_out_to_c3.legal == False
-    assert isinstance(knight_out_to_c3.positions.get("a2", None), Pawn)
+    assert isinstance(knight_out_to_c3.positions.get("c2", None), Pawn)
 
 def test_valid_pawn_takes(pawn_takes_board_from_a4: Board):
     assert pawn_takes_board_from_a4.positions.get("b5", None).color == Color.BLACK

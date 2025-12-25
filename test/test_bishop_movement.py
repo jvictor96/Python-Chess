@@ -45,7 +45,7 @@ def test_bishop_cant_jump_over_ally(board: Board):
 def test_bishop_cant_jump_over_opponent(board: Board):
     board = board.move("e4a8")
     assert board.legal == False
-    assert isinstance(board.positions.get("d4", None), Bishop)
+    assert isinstance(board.positions.get("e4", None), Bishop)
 
 def test_bishop_takes(board: Board):
     board = board.move("e4b7")

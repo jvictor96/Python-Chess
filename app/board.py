@@ -53,7 +53,7 @@ class Board:
     def add_piece(self, piece: Piece):
         self.pieces.append(piece)
     
-    @abstractmethod
+    @staticmethod
     def update_state(board: "Board", movement: Movement):
         piece = board.positions.get(movement.start_pos)
         piece.position = movement.end_pos
@@ -67,7 +67,6 @@ class Board:
         movement = Movement.from_string(movement, self.positions)
         return Board.update_state(self, movement)
 
-    @abstractmethod
     def move(board: "Board", movement: str):
         movement = Movement.from_string(movement, board.positions)
         if movement.is_valid():

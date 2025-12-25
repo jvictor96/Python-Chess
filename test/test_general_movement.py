@@ -12,7 +12,7 @@ def test_white_playing_twice_in_a_row(board: Board):
     board = board.move("a2a3")
     assert board.legal == True
     assert isinstance(board.positions.get("a3", None), Pawn)
-    board = board.move("a3a5")
+    board = board.move("a3a4")
     assert board.legal == False
     assert isinstance(board.positions.get("a3", None), Pawn)
 

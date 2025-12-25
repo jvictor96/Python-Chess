@@ -35,7 +35,15 @@ class Rook(Piece):
         return any(verifications)
     
     def get_middle_places(self, destination: dict[Position, "Piece"]) -> list[Position]:
-        pass
+        min_x = min(destination[0].x, self.position.x)
+        max_x = max(destination[0].x, self.position.x)
+        min_y = min(destination[0].y, self.position.y)
+        max_y = max(destination[0].y, self.position.y)
+        possibilities = {
+            destination[0].x == self.position.x: lambda: [Position(self.position.x, i) for i in range(min_y + 1, max_y)],
+            destination[0].y == self.position.y: lambda: [Position(i, self.position.y) for i in range(min_x + 1, max_x)]
+        }
+        return possibilities[True]()
 
 class Knight(Piece):
     def __init__(self, color, position):
@@ -49,7 +57,7 @@ class Knight(Piece):
         return any(verifications)
     
     def get_middle_places(self, destination: dict[Position, "Piece"]) -> list[Position]:
-        pass
+        return []
 
 class Bishop(Piece):
     def __init__(self, color, position):
@@ -59,7 +67,15 @@ class Bishop(Piece):
         return abs(destination[0].x - self.position.x) == abs(destination[0].y - self.position.y)
     
     def get_middle_places(self, destination: dict[Position, "Piece"]) -> list[Position]:
-        pass
+        min_x = min(destination[0].x, self.position.x)
+        max_x = max(destination[0].x, self.position.x)
+        min_y = min(destination[0].y, self.position.y)
+        max_y = max(destination[0].y, self.position.y)
+        possibilities = {
+            destination[0].x - destination[0].y == self.position.x - self.position.y: lambda: [Position(min_x + i, min_y + i) for i in range(1, max_x - min_x)],
+            destination[0].x - destination[0].y != self.position.x - self.position.y: lambda: [Position(min_x + i, max_y - i) for i in range(1, max_x - min_x)]
+        }
+        return possibilities[True]()
 
 class Queen(Piece):
     def __init__(self, color, position):
@@ -74,7 +90,20 @@ class Queen(Piece):
         return any(verifications)
     
     def get_middle_places(self, destination: dict[Position, "Piece"]) -> list[Position]:
-        pass
+        min_x = min(destination[0].x, self.position.x)
+        max_x = max(destination[0].x, self.position.x)
+        min_y = min(destination[0].y, self.position.y)
+        max_y = max(destination[0].y, self.position.y)
+        possibilities = {
+            destination[0].x == self.position.x or destination[0].y == self.position.y: {
+                destination[0].x == self.position.x: lambda: [Position(self.position.x, i) for i in range(min_y + 1, max_y)],
+                destination[0].y == self.position.y: lambda: [Position(i, self.position.y) for i in range(min_x + 1, max_x)],
+            },
+                destination[0].x != self.position.x or destination[0].y != self.position.y: {destination[0].x - destination[0].y == self.position.x - self.position.y: lambda: [Position(min_x + i, min_y + i) for i in range(1, max_x - min_x)],
+                destination[0].x - destination[0].y != self.position.x - self.position.y: lambda: [Position(min_x + i, max_y - i) for i in range(1, max_x - min_x)]
+            }
+        }
+        return possibilities[True][True]()
 
 class King(Piece):
     def __init__(self, color, position):
@@ -88,7 +117,7 @@ class King(Piece):
         return all(verifications)
     
     def get_middle_places(self, destination: dict[Position, "Piece"]) -> list[Position]:
-        pass
+        return []
 
 class Pawn(Piece):
     def __init__(self, color, position):
@@ -107,7 +136,7 @@ class Pawn(Piece):
         return any(verifications)
     
     def get_middle_places(self, destination: dict[Position, "Piece"]) -> list[Position]:
-        pass
+        return [] if abs(destination[0].y - self.position.y) == 1 else [Position(self.position.x, (self.position.y + destination[0].y) // 2)]
 
 
 piece_map = {

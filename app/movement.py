@@ -40,9 +40,8 @@ class Movement:
             return False
         if piece.is_movement_valid((self.end_pos, self.positions.get(self.end_pos))) is False:
             return False
-        if piece.__class__.__name__ in ["Knight", "King", "Pawn"]:
-            return True
-        
+        if any([place in self.positions.keys() for place in piece.get_middle_places((self.end_pos, self.positions.get(self.end_pos)))]):
+            return False
         return True
 
     def is_the_destination_different_from_origin_and_in_the_board(self):
