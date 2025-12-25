@@ -72,9 +72,9 @@ class ChessDaemon:
 class BoardIO:
 
     def display(self) -> list[str]:
-        board_representation = []
+        board_representation = ["   a b c d e f g h"]
         for y in range(8, 0, -1):
-            row = ""
+            row = f"{y}  "
             for x in range(1, 9):
                 pos = Position(x, y)
                 piece = self.positions.get(pos)

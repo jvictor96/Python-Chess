@@ -24,6 +24,8 @@ class Movement:
         return f"{self.start_pos}{self.end_pos}"
 
     def is_valid(self):
+        if self.get_piece_in_the_origin() is None:
+            return False
         return all([
             self.is_the_path_clear(),
             self.is_the_destination_different_from_origin_and_in_the_board(),
