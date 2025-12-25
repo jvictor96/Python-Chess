@@ -71,4 +71,4 @@ def test_invalid_pawn_takes(pawn_takes_board_from_a4: Board):
     assert pawn_takes_board_from_a4.legal == False
     assert isinstance(pawn_takes_board_from_a4.positions.get("a5", None), Pawn)
     assert pawn_takes_board_from_a4.positions.get("a5", None).color == Color.BLACK
-    assert pawn_takes_board_from_a4.positions.get("a4", None).color == Color.BLACK
+    assert pawn_takes_board_from_a4.positions.get("a4", None).color == Color.WHITE

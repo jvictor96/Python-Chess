@@ -81,7 +81,11 @@ class King(Piece):
         super().__init__(color, position)
 
     def is_movement_valid(self, destination: tuple[Position, "Piece"]) -> bool:
-        pass
+        verifications = [
+            abs(destination[0].x - self.position.x) <= 1,
+            abs(destination[0].y - self.position.y) <= 1
+        ]
+        return all(verifications)
     
     def get_middle_places(self, destination: dict[Position, "Piece"]) -> list[Position]:
         pass
@@ -91,7 +95,16 @@ class Pawn(Piece):
         super().__init__(color, position)
 
     def is_movement_valid(self, destination: tuple[Position, "Piece"]) -> bool:
-        pass
+        verifications = [
+            destination[1] == None and self.color == Color.WHITE and destination[0].y - self.position.y == 1 and destination[0].x == self.position.x,
+            destination[1] == None and self.color == Color.WHITE and destination[0].y - self.position.y == 2 and self.position.y == 2 and destination[0].x == self.position.x,
+            destination[1] == None and self.color == Color.BLACK and destination[0].y - self.position.y == -1 and destination[0].x == self.position.x,
+            destination[1] == None and self.color == Color.BLACK and destination[0].y - self.position.y == -2 and self.position.y == 7 and destination[0].x == self.position.x,
+            destination[1] != None and destination[1].color == Color.BLACK and self.color == Color.WHITE and destination[0].y - self.position.y == 1  and abs(destination[0].x - self.position.x) == 1,
+            destination[1] != None and destination[1].color == Color.WHITE and self.color == Color.BLACK and destination[0].y - self.position.y == -1 and abs(destination[0].x - self.position.x) == 1,
+            
+        ]
+        return any(verifications)
     
     def get_middle_places(self, destination: dict[Position, "Piece"]) -> list[Position]:
         pass
