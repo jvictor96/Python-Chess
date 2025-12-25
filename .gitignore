@@ -17,3 +17,7 @@ dist/
 
 # Sensitive files
 .env
+
+# Games
+app/games/
+*.txt

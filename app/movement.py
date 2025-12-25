@@ -21,7 +21,7 @@ class Movement:
         self.positions = positions
 
     def __repr__(self):
-        return self.start_pos + self.end_pos
+        return f"{self.start_pos}{self.end_pos}"
 
     def is_valid(self):
         return all([

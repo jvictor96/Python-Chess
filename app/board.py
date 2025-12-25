@@ -1,38 +1,58 @@
 import json
 import time
 from movement import Movement
-from piece import Piece, PieceSerializer
+from piece import Color, Piece, PieceSerializer
 from position import Position
 
+    
+class BoardSerializer(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Position):
+            return obj.__repr__()
+        if isinstance(obj, Movement):
+            return obj.__repr__()
+        return json.JSONEncoder.default(self, obj)
+    
 class ChessDaemon:
     def main_loop(self):
         while True:
             time.sleep(0.1)
-            with open("app/daemon.txt", "r+") as daemon:
-                daemon.seek(0)
-                daemon.truncate()
-                control_fields = json.load(daemon)
-                for game in control_fields["games"]:
-                    self.update_game(game)
-                if control_fields["new_game"]:
-                    control_fields["new_game"] = False
-                    control_fields["games"].append(control_fields["next_id"])
-                    BoardIO.save_board(
-                        board = BoardIO.get_board(0),
-                        game_id=control_fields["next_id"])
-                    self.reprint_input_output(
-                        game_id=control_fields["next_id"],
-                        board=BoardIO.get_board(0))
-                    control_fields["next_id"] += 1
-                if control_fields["end_game"] > 0:
-                    control_fields["games"].remove(control_fields["end_game"])
-                    control_fields["new_game"] = 0
-                json.dump(control_fields, daemon)
+            try:
+                with open("app/daemon.txt", "r+") as daemon:
+                    control_fields = json.load(daemon)
+                    for game in control_fields["games"]:
+                        self.update_game(game)
+                    if control_fields["new_game"]:
+                        control_fields["new_game"] = False
+                        control_fields["games"].append(control_fields["next_id"])
+                        BoardIO.save_board(
+                            board = BoardIO.get_board(0),
+                            game_id=control_fields["next_id"])
+                        self.reprint_input_output(
+                            game_id=control_fields["next_id"],
+                            board=BoardIO.get_board(0))
+                        control_fields["next_id"] += 1
+                    if control_fields["end_game"] > 0:
+                        control_fields["games"].remove(control_fields["end_game"])
+                        control_fields["new_game"] = 0
+                    daemon.seek(0)
+                    daemon.truncate()
+                    json.dump(control_fields, daemon)
+            except FileNotFoundError as e:
+                with open("app/daemon.txt", "x+") as daemon:
+                    if len(daemon.readlines()) == 0:
+                        control_fields = {
+                            "games": [],
+                            "new_game": False,
+                            "next_id": 1,
+                            "end_game": 0
+                        }
+                        daemon.seek(0)
+                        daemon.truncate()
+                        json.dump(control_fields, daemon)
 
     def update_game(self, game: int):
         with open(f"app/games/game_{game}_input.txt", "r+") as game_file:
-            game_file.seek(0)
-            game_file.truncate()
             game_control_fields = json.load(game_file)
             if game_control_fields["move"] != "":
                 board = BoardIO.get_board(game)
@@ -47,7 +67,7 @@ class ChessDaemon:
         game_control_fields["move"] = ""
         game_control_fields["error"] = error
         with open(f"app/games/game_{game_id}_input.txt", "w") as input_file:
-            [input_file.write(line + "\n") for line in BoardIO.display(board)]
+            json.dump(game_control_fields, input_file)
 
 class BoardIO:
 
@@ -59,7 +79,7 @@ class BoardIO:
                 pos = Position(x, y)
                 piece = self.positions.get(pos)
                 if piece:
-                    piece_symbol = PieceSerializer.serialize(piece)["piece"]
+                    piece_symbol = PieceSerializer.serialize(piece)["piece"].upper() if piece.color == Color.WHITE else PieceSerializer.serialize(piece)["piece"].lower()
                     row += piece_symbol + " "
                 else:
                     row += ". "
@@ -82,7 +102,7 @@ class BoardIO:
                 "pieces": [PieceSerializer.serialize(piece) for piece in board.pieces],
                 "movements": board.movements
             }
-            json.dump(game, file)
+            json.dump(game, file, cls=BoardSerializer)
 
 class Board:
     movements: list[Movement]
