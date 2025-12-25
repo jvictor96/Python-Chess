@@ -1,7 +1,7 @@
 import json
 import time
 from movement import Movement
-from piece import Color, Piece, PieceSerializer
+from piece import Color, Piece, PieceSerializer, piece_map
 from position import Position
 
     
@@ -109,11 +109,15 @@ class Board:
     pieces: list[Piece]
     positions: dict[Position, Piece]
     legal: bool
+    white_king: Piece
+    black_king: Piece
 
     def __init__(self, pieces: list[Piece] = None, movements=None):
         self.pieces: list[Piece] = pieces
         self.movements: list[Movement] = movements
-        self.positions = {piece.position: piece for piece in pieces} 
+        self.positions = {piece.position: piece for piece in pieces}
+        self.white_king = next(piece for piece in pieces if piece.color == Color.WHITE and piece_map[type(piece)] == "K")
+        self.black_king = next(piece for piece in pieces if piece.color == Color.BLACK and piece_map[type(piece)] == "K")
 
     @staticmethod
     def update_state(board: "Board", movement: Movement, bypass_movements_append: bool = False) -> "Board":
