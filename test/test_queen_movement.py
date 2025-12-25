@@ -14,41 +14,41 @@ def board():
         return board
 
 def test_valid_diagonal_up_queen_move(board: Board):
-    board.keep_moving("d4b6")
+    board.move("d4b6")
     assert board.legal == True
     assert isinstance(board.positions.get("b6", None), Queen)
 
 def test_valid_diagonal_down_queen_move(board: Board):
-    board.keep_moving("d4c3")
+    board.move("d4c3")
     assert board.legal == True
     assert isinstance(board.positions.get("c3", None), Queen)
 
 def test_valid_left_queen_move(board: Board):
-    board.keep_moving("d4c4")
+    board.move("d4c4")
     assert board.legal == True
     assert isinstance(board.positions.get("c4", None), Queen)
 
 def test_valid_down_queen_move(board: Board):
-    board.keep_moving("d4d3")
+    board.move("d4d3")
     assert board.legal == True
     assert isinstance(board.positions.get("d3", None), Queen)
 
 def test_invalid_queen_move(board: Board):
-    board.keep_moving("d4a3")
+    board.move("d4a3")
     assert board.legal == False
     assert isinstance(board.positions.get("d4", None), Queen)
 
 def test_blocked_queen_move(board: Board):
-    board.keep_moving("d4e4")
+    board.move("d4e4")
     assert board.legal == False
     assert isinstance(board.positions.get("d4", None), Queen)
 
 def test_queen_cant_jump_over_ally(board: Board):
-    board.keep_moving("d4h4")
+    board.move("d4h4")
     assert board.legal == False
     assert isinstance(board.positions.get("d4", None), Queen)
 
 def test_queen_takes(board: Board):
-    board.keep_moving("d4e5")
+    board.move("d4e5")
     assert board.legal == True
     assert board.positions.get("e5", None).color == Color.WHITE

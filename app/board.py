@@ -40,15 +40,6 @@ class Board:
             board = Board(
                 [PieceSerializer.deserialize(piece) for piece in game["pieces"]], game["movements"])
         return board
-    
-    def bypass_validation_move(self, movement: str):
-        movement = Movement.from_string(movement, self.positions)
-        piece = self.positions.get(movement.start_pos)
-        self.movements.append(movement)
-        self.positions.pop(movement.start_pos)
-        self.positions[movement.end_pos] = piece
-        self.pieces = [piece for pos, piece in self.positions.items()]
-        return self
 
     def save_board(self, game_id: int):
         with open(f"app/games/game_{game_id}.txt", "w") as file:
@@ -61,41 +52,28 @@ class Board:
     
     def add_piece(self, piece: Piece):
         self.pieces.append(piece)
+    
+    @abstractmethod
+    def update_state(board: "Board", movement: Movement):
+        piece = board.positions.get(movement.start_pos)
+        piece.position = movement.end_pos
+        board.movements.append(movement)
+        board.positions.pop(movement.start_pos)
+        board.positions[movement.end_pos] = piece
+        board.pieces = [piece for pos, piece in board.positions.items()]
+        return board
 
-    def validate_move(self, movement: Movement) -> bool:
-        piece = self.positions.get(movement.start_pos)
-        if piece is None:
-            return False
-        return piece.is_movement_valid(movement.end_pos)
+    def bypass_validation_move(self, movement: str) -> "Board":
+        movement = Movement.from_string(movement, self.positions)
+        return Board.update_state(self, movement)
 
     @abstractmethod
-    def move(game_id: str, movement: str):
-        board = Board.get_board(game_id)
+    def move(board: "Board", movement: str):
         movement = Movement.from_string(movement, board.positions)
         if movement.is_valid():
             board.legal = True
         else:
             board.legal = False 
         if board.legal:
-            piece = board.positions.get(movement.start_pos)
-            board.movements.append(movement)
-            board.positions.pop(movement.start_pos)
-            board.positions[movement.end_pos] = piece
-            board.pieces = [piece for pos, piece in board.positions.items()]
-        if game_id > 0:
-            board.save_board(game_id)
+            return Board.update_state(board, movement)
         return board
-
-    def keep_moving(self, movement: str):
-        movement = Movement.from_string(movement, self.positions)
-        if movement.is_valid():
-            self.legal = True
-        else:
-            self.legal = False 
-        if self.legal:
-            piece = self.positions.get(movement.start_pos)
-            self.movements.append(movement)
-            self.positions.pop(movement.start_pos)
-            self.positions[movement.end_pos] = piece
-            self.pieces = [piece for pos, piece in self.positions.items()]
-        return self

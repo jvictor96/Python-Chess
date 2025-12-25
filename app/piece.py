@@ -16,43 +16,84 @@ class Piece(ABC):
         self.position = position
 
     @abstractmethod
-    def is_movement_valid(self, destination: dict[Position, "Piece"]) -> bool:
+    def is_movement_valid(self, destination: tuple[Position, "Piece"]) -> bool:
+        pass
+
+    @abstractmethod
+    def get_middle_places(self, destination: dict[Position, "Piece"]) -> list[Position]:
         pass
 
 class Rook(Piece):
     def __init__(self, color, position):
         super().__init__(color, position)
-    def is_movement_valid(self, destination: dict[Position, "Piece"]) -> bool:
+
+    def is_movement_valid(self, destination: tuple[Position, "Piece"]) -> bool:
+        verifications = [
+            destination[0].x == self.position.x,
+            destination[0].y == self.position.y,
+        ]
+        return any(verifications)
+    
+    def get_middle_places(self, destination: dict[Position, "Piece"]) -> list[Position]:
         pass
 
 class Knight(Piece):
     def __init__(self, color, position):
         super().__init__(color, position)
-    def is_movement_valid(self, destination: dict[Position, "Piece"]) -> bool:
+
+    def is_movement_valid(self, destination: tuple[Position, "Piece"]) -> bool:
+        verifications = [
+            abs(destination[0].x - self.position.x) == 2 and abs(destination[0].y - self.position.y) == 1,
+            abs(destination[0].x - self.position.x) == 1 and abs(destination[0].y - self.position.y) == 2,
+        ]
+        return any(verifications)
+    
+    def get_middle_places(self, destination: dict[Position, "Piece"]) -> list[Position]:
         pass
 
 class Bishop(Piece):
     def __init__(self, color, position):
         super().__init__(color, position)
-    def is_movement_valid(self, destination: dict[Position, "Piece"]) -> bool:
+
+    def is_movement_valid(self, destination: tuple[Position, "Piece"]) -> bool:
+        return abs(destination[0].x - self.position.x) == abs(destination[0].y - self.position.y)
+    
+    def get_middle_places(self, destination: dict[Position, "Piece"]) -> list[Position]:
         pass
 
 class Queen(Piece):
     def __init__(self, color, position):
         super().__init__(color, position)
-    def is_movement_valid(self, destination: dict[Position, "Piece"]) -> bool:
+
+    def is_movement_valid(self, destination: tuple[Position, "Piece"]) -> bool:
+        verifications = [
+            destination[0].x == self.position.x,
+            destination[0].y == self.position.y,
+            abs(destination[0].x - self.position.x) == abs(destination[0].y - self.position.y)
+        ]
+        return any(verifications)
+    
+    def get_middle_places(self, destination: dict[Position, "Piece"]) -> list[Position]:
         pass
 
 class King(Piece):
     def __init__(self, color, position):
         super().__init__(color, position)
-    def is_movement_valid(self, destination: dict[Position, "Piece"]) -> bool:
+
+    def is_movement_valid(self, destination: tuple[Position, "Piece"]) -> bool:
+        pass
+    
+    def get_middle_places(self, destination: dict[Position, "Piece"]) -> list[Position]:
         pass
 
 class Pawn(Piece):
     def __init__(self, color, position):
         super().__init__(color, position)
-    def is_movement_valid(self, destination: dict[Position, "Piece"]) -> bool:
+
+    def is_movement_valid(self, destination: tuple[Position, "Piece"]) -> bool:
+        pass
+    
+    def get_middle_places(self, destination: dict[Position, "Piece"]) -> list[Position]:
         pass
 
 

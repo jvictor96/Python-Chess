@@ -13,36 +13,36 @@ def board():
         return board
 
 def test_valid_diagonal_up_king_move(board: Board):
-    board.keep_moving("e4d5")
+    board.move("e4d5")
     assert board.legal == True
     assert isinstance(board.positions.get("d5", None), King)
 
 def test_valid_diagonal_down_king_move(board: Board):
-    board.keep_moving("e4d3")
+    board.move("e4d3")
     assert board.legal == True
     assert isinstance(board.positions.get("d3", None), King)
 
 def test_valid_right_king_move(board: Board):
-    board.keep_moving("e4f4")
+    board.move("e4f4")
     assert board.legal == True
     assert isinstance(board.positions.get("f4", None), King)
 
 def test_valid_down_king_move(board: Board):
-    board.keep_moving("e4e3")
+    board.move("e4e3")
     assert board.legal == True
     assert isinstance(board.positions.get("e3", None), King)
 
 def test_invalid_king_move(board: Board):
-    board.keep_moving("e4e6")
+    board.move("e4e6")
     assert board.legal == False
     assert isinstance(board.positions.get("e4", None), King)
 
 def test_blocked_king_move(board: Board):
-    board.keep_moving("e4d4")
+    board.move("e4d4")
     assert board.legal == False
     assert isinstance(board.positions.get("e4", None), King)
 
 def test_king_takes(board: Board):
-    board.keep_moving("e4e5")
+    board.move("e4e5")
     assert board.legal == True
     assert board.positions.get("e5", None).color == Color.WHITE

@@ -38,16 +38,18 @@ class Movement:
         piece = self.get_piece_in_the_origin()
         if piece is None:
             return False
+        if piece.is_movement_valid((self.end_pos, self.positions.get(self.end_pos))) is False:
+            return False
         if piece.__class__.__name__ in ["Knight", "King", "Pawn"]:
             return True
+        
         return True
 
     def is_the_destination_different_from_origin_and_in_the_board(self):
         return self.start_pos != self.end_pos
 
     def is_destinarion_free(self):
-        # Placeholder for turn validation logic
-        return True
+        return self.positions.get(self.end_pos, None) is None or self.positions.get(self.end_pos, None).color != self.get_piece_in_the_origin().color
 
     def is_the_player_turn(self):
         # Placeholder for turn validation logic
@@ -55,4 +57,4 @@ class Movement:
 
     def king_wont_be_in_check(self):
         # Placeholder for check validation logic
-        return False
+        return True
