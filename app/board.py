@@ -116,10 +116,11 @@ class Board:
         self.positions = {piece.position: piece for piece in pieces} 
 
     @staticmethod
-    def update_state(board: "Board", movement: Movement):
+    def update_state(board: "Board", movement: Movement, bypass_movements_append: bool = False) -> "Board":
         piece = board.positions.get(movement.start_pos)
         piece.position = movement.end_pos
-        board.movements.append(movement)
+        if not bypass_movements_append:
+            board.movements.append(movement)
         board.positions.pop(movement.start_pos)
         board.positions[movement.end_pos] = piece
         board.pieces = [piece for pos, piece in board.positions.items()]
@@ -127,9 +128,13 @@ class Board:
 
     def bypass_validation_move(self, movement: str) -> "Board":
         movement = Movement.from_string(movement, self.positions)
-        return Board.update_state(self, movement)
+        return Board.update_state(self, movement, bypass_movements_append=True)
 
     def move(board: "Board", movement: str):
         movement: Movement = Movement.from_string(movement, board.positions)
-        board.legal = movement.is_valid() 
+        piece = board.positions.get(movement.start_pos)
+        right_turn = any([
+            piece.color == Color.WHITE and len(board.movements) % 2 == 0,
+            piece.color == Color.BLACK and len(board.movements) % 2 == 1])
+        board.legal = all([movement.is_valid(), right_turn])
         return Board.update_state(board, movement) if board.legal else board
