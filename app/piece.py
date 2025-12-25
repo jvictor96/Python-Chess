@@ -71,6 +71,13 @@ piece_map = {
     Pawn: "P",
 }
 
+color_map = {
+    "W": Color.WHITE,
+    "B": Color.BLACK,
+    Color.WHITE: "W",
+    Color.BLACK: "B",
+}
+
 class PieceSerializer:
     @staticmethod
     def serialize(piece: Piece) -> str:
@@ -79,7 +86,7 @@ class PieceSerializer:
     
     @staticmethod
     def deserialize(data: dict) -> Piece:
-        color = data["color"]
+        color = color_map[data["color"]]
         piece_type = data["piece"]
         position = data["position"]
         return piece_map[piece_type](color, Position.from_string(position))
