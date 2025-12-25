@@ -1,23 +1,23 @@
 import pytest
-from board import Board
+from board import Board, BoardIO
 from piece import Color, Knight
 
 @pytest.fixture
 def knight_takes_board():
-        board = Board.get_board(0)
+        board = BoardIO.get_board(0)
         board.bypass_validation_move("b1c3")  
         board.bypass_validation_move("d7d5")  
         return board
 
 @pytest.fixture
 def knight_out():
-        board = Board.get_board(0)
+        board = BoardIO.get_board(0)
         board.bypass_validation_move("b1c3")  
         return board
 
 @pytest.fixture
 def board():
-        board = Board.get_board(0)
+        board = BoardIO.get_board(0)
         return board
 
 def test_valid_knight_move(board: Board):

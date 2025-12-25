@@ -1,4 +1,4 @@
-from board import Board
+from board import Board, BoardIO
 from piece import Bishop, Color
 
 import pytest
@@ -7,7 +7,7 @@ import pytest
 
 @pytest.fixture
 def board():
-        board = Board.get_board(0)
+        board = BoardIO.get_board(0)
         board = board.bypass_validation_move("h1d4")  
         board = board.bypass_validation_move("c1e4")  
         return board

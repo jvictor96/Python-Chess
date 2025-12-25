@@ -1,11 +1,11 @@
 import pytest
-from board import Board
+from board import Board, BoardIO
 from piece import Color, Knight, Pawn
 
 
 @pytest.fixture
 def pawn_takes_board_from_a4():
-        board = Board.get_board(0)
+        board = BoardIO.get_board(0)
         board.bypass_validation_move("a2a4")  
         board.bypass_validation_move("b7b5")  
         board.bypass_validation_move("a7a5")  
@@ -13,19 +13,19 @@ def pawn_takes_board_from_a4():
 
 @pytest.fixture
 def pawn_out_to_a3():
-        board = Board.get_board(0)
+        board = BoardIO.get_board(0)
         board.bypass_validation_move("a2a3")  
         return board
 
 @pytest.fixture
 def knight_out_to_c3():
-        board = Board.get_board(0)
+        board = BoardIO.get_board(0)
         board.bypass_validation_move("b1c3")  
         return board
 
 @pytest.fixture
 def board():
-        board = Board.get_board(0)
+        board = BoardIO.get_board(0)
         return board
 
 def test_pawn_two_step(board: Board):

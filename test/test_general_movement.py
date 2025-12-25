@@ -1,11 +1,11 @@
 import pytest
-from board import Board
+from board import Board, BoardIO
 from piece import Color, Knight, Pawn
 
 
 @pytest.fixture
 def board():
-        board = Board.get_board(0)
+        board = BoardIO.get_board(0)
         return board
 
 def test_white_playing_twice_in_a_row(board: Board):

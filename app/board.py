@@ -5,16 +5,7 @@ from piece import Piece, PieceSerializer
 from position import Position
 
 
-class Board:
-    movements: list[Movement]
-    pieces: list[Piece]
-    positions: dict[Position, Piece]
-    legal: bool
-
-    def __init__(self, pieces: list[Piece] = None, movements=None):
-        self.pieces: list[Piece] = pieces
-        self.movements: list[Movement] = movements
-        self.positions = {piece.position: piece for piece in pieces} 
+class BoardIO:
 
     def display(self) -> list[str]:
         board_representation = []
@@ -30,7 +21,6 @@ class Board:
                     row += ". "
             board_representation.append(row.strip())
         return board_representation
-        
 
     @staticmethod
     def get_board(game_id: int) -> "Board":
@@ -49,10 +39,17 @@ class Board:
             }
             json.dump(game, file)
 
-    
-    def add_piece(self, piece: Piece):
-        self.pieces.append(piece)
-    
+class Board:
+    movements: list[Movement]
+    pieces: list[Piece]
+    positions: dict[Position, Piece]
+    legal: bool
+
+    def __init__(self, pieces: list[Piece] = None, movements=None):
+        self.pieces: list[Piece] = pieces
+        self.movements: list[Movement] = movements
+        self.positions = {piece.position: piece for piece in pieces} 
+
     @staticmethod
     def update_state(board: "Board", movement: Movement):
         piece = board.positions.get(movement.start_pos)
@@ -68,11 +65,6 @@ class Board:
         return Board.update_state(self, movement)
 
     def move(board: "Board", movement: str):
-        movement = Movement.from_string(movement, board.positions)
-        if movement.is_valid():
-            board.legal = True
-        else:
-            board.legal = False 
-        if board.legal:
-            return Board.update_state(board, movement)
-        return board
+        movement: Movement = Movement.from_string(movement, board.positions)
+        board.legal = movement.is_valid() 
+        return Board.update_state(board, movement) if board.legal else board
