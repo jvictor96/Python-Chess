@@ -22,11 +22,16 @@ class ChessDaemon:
                     control_fields = json.load(daemon)
                     for game in control_fields["games"]:
                         self.update_game(game)
-                    if control_fields["new_game"]:
-                        control_fields["new_game"] = False
+                    if control_fields["new_game"]["white"] != "":
+                        white = control_fields["new_game"]["white"]
+                        black = control_fields["new_game"]["black"]
+                        control_fields["new_game"] = { "white": "", "black": "" }
                         control_fields["games"].append(control_fields["next_id"])
+                        board = BoardIO.get_board(0)
+                        board.white = white
+                        board.black = black
                         BoardIO.save_board(
-                            board = BoardIO.get_board(0),
+                            board = board,
                             game_id=control_fields["next_id"])
                         self.reprint_input_output(
                             game_id=control_fields["next_id"],
@@ -34,7 +39,7 @@ class ChessDaemon:
                         control_fields["next_id"] += 1
                     if control_fields["end_game"] > 0:
                         control_fields["games"].remove(control_fields["end_game"])
-                        control_fields["new_game"] = 0
+                        control_fields["end_game"] = 0
                     daemon.seek(0)
                     daemon.truncate()
                     json.dump(control_fields, daemon)
@@ -43,7 +48,7 @@ class ChessDaemon:
                     if len(daemon.readlines()) == 0:
                         control_fields = {
                             "games": [],
-                            "new_game": False,
+                            "new_game": { "white": "", "black": "" },
                             "next_id": 1,
                             "end_game": 0
                         }
@@ -61,8 +66,11 @@ class ChessDaemon:
                 self.reprint_input_output(game, board, "" if board.legal else "Illegal move")
 
     def reprint_input_output(self, game_id: int, board: "Board", error: str = ""):
-        with open(f"app/games/game_{game_id}_output.txt", "w") as output_file:
-            [output_file.write(line + "\n") for line in BoardIO.display(board)]
+        display = BoardIO.display(board)
+        with open(f"app/games/game_{game_id}_white.txt", "w") as output_file:
+            [output_file.write(line + "\n") for line in display]
+        with open(f"app/games/game_{game_id}_black.txt", "w") as output_file:
+            [output_file.write(display[index][::-1] + "\n") for index in range(len(display)-1, -1, -1)]
         game_control_fields = json.loads("{}")
         game_control_fields["move"] = ""
         game_control_fields["error"] = error
@@ -93,6 +101,8 @@ class BoardIO:
             game = json.load(file)
             board = Board(
                 [PieceSerializer.deserialize(piece) for piece in game["pieces"]], game["movements"])
+            board.white = game["white"]
+            board.black = game["black"]
         return board
 
     @staticmethod
@@ -100,7 +110,10 @@ class BoardIO:
         with open(f"app/games/game_{game_id}.txt", "w") as file:
             game = {
                 "pieces": [PieceSerializer.serialize(piece) for piece in board.pieces],
-                "movements": board.movements
+                "movements": board.movements,
+                "white": board.white,
+                "black": board.black,
+                "state": "FREE"
             }
             json.dump(game, file, cls=BoardSerializer)
 
@@ -109,15 +122,16 @@ class Board:
     pieces: list[Piece]
     positions: dict[Position, Piece]
     legal: bool
-    white_king: Piece
-    black_king: Piece
+    white: str
+    black: str
 
     def __init__(self, pieces: list[Piece] = None, movements=None):
         self.pieces: list[Piece] = pieces
         self.movements: list[Movement] = movements
         self.positions = {piece.position: piece for piece in pieces}
-        self.white_king = next(piece for piece in pieces if piece.color == Color.WHITE and piece_map[type(piece)] == "K")
-        self.black_king = next(piece for piece in pieces if piece.color == Color.BLACK and piece_map[type(piece)] == "K")
+
+    def get_king(self, color: Color) -> Piece:
+        return next(piece for piece in self.pieces if piece.color == color and piece_map[type(piece)] == "K")
 
     @staticmethod
     def update_state(board: "Board", movement: Movement, bypass_movements_append: bool = False) -> "Board":
