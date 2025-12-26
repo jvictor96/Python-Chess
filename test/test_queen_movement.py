@@ -13,6 +13,16 @@ def board():
         board.bypass_validation_move("e7e5")  
         return board
 
+@pytest.fixture
+def clean_board():
+        board = BoardIO.get_board(0)
+        return board
+
+def test_queen_jump_over_pawn_bug(clean_board: Board):
+    clean_board.move("d1d3")
+    assert clean_board.legal == False
+    assert isinstance(clean_board.positions.get("d1", None), Queen)
+
 def test_valid_diagonal_up_queen_move(board: Board):
     board.move("d4b6")
     assert board.legal == True

@@ -99,7 +99,7 @@ class Queen(Piece):
                 destination[0].x == self.position.x: lambda: [Position(self.position.x, i) for i in range(min_y + 1, max_y)],
                 destination[0].y == self.position.y: lambda: [Position(i, self.position.y) for i in range(min_x + 1, max_x)],
             },
-                destination[0].x != self.position.x or destination[0].y != self.position.y: {destination[0].x - destination[0].y == self.position.x - self.position.y: lambda: [Position(min_x + i, min_y + i) for i in range(1, max_x - min_x)],
+                destination[0].x != self.position.x and destination[0].y != self.position.y: {destination[0].x - destination[0].y == self.position.x - self.position.y: lambda: [Position(min_x + i, min_y + i) for i in range(1, max_x - min_x)],
                 destination[0].x - destination[0].y != self.position.x - self.position.y: lambda: [Position(min_x + i, max_y - i) for i in range(1, max_x - min_x)]
             }
         }
