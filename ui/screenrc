@@ -1,0 +1,5 @@
+split -v
+screen -t board 1 watch cat ../app/games/game_${GAME}_output.txt
+select window2
+focus
+screen -t bash 2 python player_input.py
