@@ -102,7 +102,7 @@ class BoardIO:
     @staticmethod
     def get_new_board() -> "Board":
         board: Board
-        with open(f"res/new_game.json", "r") as file:
+        with open(f"src/res/new_game.json", "r") as file:
             game = json.load(file)
             board = Board(
                 [PieceSerializer.deserialize(piece) for piece in game["pieces"]], game["movements"])
@@ -112,7 +112,7 @@ class BoardIO:
 
     @staticmethod
     def get_path() -> str:
-        return f"{os.environ["HOME"]}/python_chess"
+        return f"{os.environ['HOME']}/python_chess"
 
     @staticmethod
     def get_board(game_id: int) -> "Board":
