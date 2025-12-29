@@ -1,5 +1,5 @@
 split -v
-screen -t board 1 watch cat ../app/games/game_${GAME}_${BOARD}.txt
+screen -t board 1 watch cat ${HOME}/python_chess/game_${GAME}_${BOARD}.json
 select window2
 focus
 screen -t bash 2 python player_input.py

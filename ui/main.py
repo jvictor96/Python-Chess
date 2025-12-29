@@ -1,6 +1,8 @@
 import json
 import os
 
+path = f"{os.environ["HOME"]}/python_chess"
+
 def read_action():
     return input("1 for new game, 2 for listing games, 3 for joining game, 4 exit ").strip()
 
@@ -8,7 +10,7 @@ def new_game():
     game_id = 0
     white = input("Who are you? ").strip()
     black = input("Who are you challenging? ").strip()
-    with open("../app/daemon.txt", "r+") as daemon:
+    with open(f"{path}/daemon.json", "r+") as daemon:
         control_fields = json.load(daemon)
         control_fields["new_game"]["white"] = white
         control_fields["new_game"]["black"] = black
@@ -27,11 +29,11 @@ def list_games():
 
 def join_game():
     player = input("Who are you? ").strip()
-    with open("../app/daemon.txt", "r") as daemon:
+    with open(f"{path}/daemon.json", "r") as daemon:
         control_fields = json.load(daemon)
         print("Available games:")
         for game in control_fields["games"]:
-            with open(f"../app/games/game_{game}.txt", "r") as game_file:
+            with open(f"{path}/game_{game}.json", "r") as game_file:
                 game_data = json.load(game_file)
                 white = game_data["white"]
                 black = game_data["black"]

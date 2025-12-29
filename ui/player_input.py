@@ -2,12 +2,14 @@ import json
 import os
 import time
 
+path = f"{os.environ["HOME"]}/python_chess"
+
 while True:
     time.sleep(2)
     os.system("clear")
     color = ""
     len_movements = -1
-    with open(f"../app/games/game_{os.environ['GAME']}.txt", "r+") as game_file:
+    with open(f"{path}/game_{os.environ['GAME']}.json", "r+") as game_file:
         game_data = json.load(game_file)
         if "WAITING" == game_data["state"]:
             print("Waiting the daemon")
@@ -22,7 +24,7 @@ while True:
             if any(right_turn):
                 print("It's your turn.")
                 movement = input("Enter your move (e.g., e2e4): ").strip()
-                with open(f"../app/games/game_{os.environ['GAME']}_input.txt", "r+") as input_file:
+                with open(f"{path}/game_{os.environ['GAME']}_input.json", "r+") as input_file:
                     game_control_fields = json.load(input_file)
                     game_control_fields["move"] = movement
                     input_file.seek(0)

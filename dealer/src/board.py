@@ -3,6 +3,7 @@ import time
 from movement import Movement
 from piece import Color, Piece, PieceSerializer, piece_map
 from position import Position
+import os
 
     
 class BoardSerializer(json.JSONEncoder):
@@ -15,10 +16,15 @@ class BoardSerializer(json.JSONEncoder):
     
 class ChessDaemon:
     def main_loop(self):
+        self.path = BoardIO.get_path()
+        try:
+            os.mkdir(self.path)
+        except Exception as e:
+            pass
         while True:
             time.sleep(0.1)
             try:
-                with open("app/daemon.txt", "r+") as daemon:
+                with open(f"{self.path}/daemon.json", "r+") as daemon:
                     control_fields = json.load(daemon)
                     for game in control_fields["games"]:
                         self.update_game(game)
@@ -39,12 +45,12 @@ class ChessDaemon:
                         control_fields["next_id"] += 1
                     if control_fields["end_game"] > 0:
                         control_fields["games"].remove(control_fields["end_game"])
-                        control_fields["end_game"] = 0
+                        control_fields["end_g.txtame"] = 0
                     daemon.seek(0)
                     daemon.truncate()
                     json.dump(control_fields, daemon)
             except FileNotFoundError as e:
-                with open("app/daemon.txt", "x+") as daemon:
+                with open(f"{self.path}/daemon.json", "x+") as daemon:
                     if len(daemon.readlines()) == 0:
                         control_fields = {
                             "games": [],
@@ -57,7 +63,7 @@ class ChessDaemon:
                         json.dump(control_fields, daemon)
 
     def update_game(self, game: int):
-        with open(f"app/games/game_{game}_input.txt", "r+") as game_file:
+        with open(f"{self.path}/game_{game}_input.json", "r+") as game_file:
             game_control_fields = json.load(game_file)
             if game_control_fields["move"] != "":
                 board = BoardIO.get_board(game)
@@ -67,18 +73,17 @@ class ChessDaemon:
 
     def reprint_input_output(self, game_id: int, board: "Board", error: str = ""):
         display = BoardIO.display(board)
-        with open(f"app/games/game_{game_id}_white.txt", "w") as output_file:
+        with open(f"{self.path}/game_{game_id}_white.json", "w") as output_file:
             [output_file.write(line + "\n") for line in display]
-        with open(f"app/games/game_{game_id}_black.txt", "w") as output_file:
+        with open(f"{self.path}/game_{game_id}_black.json", "w") as output_file:
             [output_file.write(display[index][::-1] + "\n") for index in range(len(display)-1, -1, -1)]
         game_control_fields = json.loads("{}")
         game_control_fields["move"] = ""
         game_control_fields["error"] = error
-        with open(f"app/games/game_{game_id}_input.txt", "w") as input_file:
+        with open(f"{self.path}/game_{game_id}_input.json", "w") as input_file:
             json.dump(game_control_fields, input_file)
 
 class BoardIO:
-
     def display(self) -> list[str]:
         board_representation = ["   a b c d e f g h"]
         for y in range(8, 0, -1):
@@ -95,9 +100,26 @@ class BoardIO:
         return board_representation
 
     @staticmethod
-    def get_board(game_id: int) -> "Board":
+    def get_new_board() -> "Board":
         board: Board
-        with open(f"app/games/game_{game_id}.txt", "r") as file:
+        with open(f"res/new_game.json", "r") as file:
+            game = json.load(file)
+            board = Board(
+                [PieceSerializer.deserialize(piece) for piece in game["pieces"]], game["movements"])
+            board.white = game["white"]
+            board.black = game["black"]
+        return board
+
+    @staticmethod
+    def get_path() -> str:
+        return f"{os.environ["HOME"]}/python_chess"
+
+    @staticmethod
+    def get_board(game_id: int) -> "Board":
+        if game_id == 0:
+            return BoardIO.get_new_board()
+        board: Board
+        with open(f"{BoardIO.get_path()}/game_{game_id}.json", "r") as file:
             game = json.load(file)
             board = Board(
                 [PieceSerializer.deserialize(piece) for piece in game["pieces"]], game["movements"])
@@ -107,7 +129,7 @@ class BoardIO:
 
     @staticmethod
     def save_board(board: "Board", game_id: int):
-        with open(f"app/games/game_{game_id}.txt", "w") as file:
+        with open(f"{BoardIO.get_path()}/game_{game_id}.json", "w") as file:
             game = {
                 "pieces": [PieceSerializer.serialize(piece) for piece in board.pieces],
                 "movements": board.movements,
