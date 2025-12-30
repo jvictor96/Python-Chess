@@ -15,6 +15,15 @@ def board():
 def test_minor_roque(board: Board):
     assert False == True
 
+def test_blocked_minor_roque(board: Board):
+    assert False == True
+
+def test_moved_king_minor_roque(board: Board):
+    assert False == True
+
+def test_moved_rook_minor_roque(board: Board):
+    assert False == True
+
 def test_major_roque(board: Board):
     assert False == True
 

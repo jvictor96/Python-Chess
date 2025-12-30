@@ -58,3 +58,6 @@ def test_invalid_king_goes_to_check(board5: Board):
     board5.move("e1e2")
     assert board5.legal == False
     assert isinstance(board5.positions.get("e1", None), King)
+
+def test_check_mate(board5: Board):
+    assert True == False
