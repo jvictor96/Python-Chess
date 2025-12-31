@@ -1,13 +1,12 @@
-from board import Board, BoardIO
+from board import Board
 from piece import Bishop, Color, King, Knight, Pawn, Queen, Rook
-from position import Position
 
 def test_load():
-    board = BoardIO.get_board(0)
+    board = Board()
     assert isinstance(board.positions.get("a1", None), Rook)
 
 def test_game_id_0_is_a_regular_starting_board():   # it will be the setup for every game in production
-    board = BoardIO.get_board(0)
+    board = Board()
     assert isinstance(board.positions.get("a1", None), Rook)
     assert isinstance(board.positions.get("a8", None), Rook)
     assert isinstance(board.positions.get("h1", None), Rook)

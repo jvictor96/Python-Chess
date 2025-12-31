@@ -1,12 +1,12 @@
 import pytest
-from board import Board, BoardIO
+from board import Board
 from piece import King, Color
 
 # game id 2 had the white queen at d4, d1, e1 free and the white king at e4, and a black pawn at e5
 
 @pytest.fixture
 def board():
-        board = BoardIO.get_board(0)
+        board = Board()
         board.bypass_validation_move("d1d4")  
         board.bypass_validation_move("e1e4")  
         board.bypass_validation_move("e7e5")  

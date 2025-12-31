@@ -1,4 +1,4 @@
-from board import Board, BoardIO
+from board import Board
 from piece import Queen, Color
 
 import pytest
@@ -7,7 +7,7 @@ import pytest
 
 @pytest.fixture
 def board():
-        board = BoardIO.get_board(0)
+        board = Board()
         board.bypass_validation_move("d1d4")  
         board.bypass_validation_move("e1e4")  
         board.bypass_validation_move("e7e5")  
@@ -15,7 +15,7 @@ def board():
 
 @pytest.fixture
 def clean_board():
-        board = BoardIO.get_board(0)
+        board = Board()
         return board
 
 def test_queen_jump_over_pawn_bug(clean_board: Board):

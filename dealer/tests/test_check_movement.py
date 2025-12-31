@@ -1,12 +1,12 @@
 import pytest
-from board import Board, BoardIO
+from board import Board
 from piece import King, Queen, Pawn
 
 # game id 3 had d2 and e2 free and black bishop at b4
 
 @pytest.fixture
 def king_in_check_by_bishop():
-        board = BoardIO.get_board(0)
+        board = Board()
         board = board.bypass_validation_move("d2d4")  
         board = board.bypass_validation_move("e2e4")  
         board = board.bypass_validation_move("f8b4")  
@@ -16,7 +16,7 @@ def king_in_check_by_bishop():
 
 @pytest.fixture
 def board4():
-        board = BoardIO.get_board(0)
+        board = Board()
         board.bypass_validation_move("f8b4")  
         return board
 
@@ -24,7 +24,7 @@ def board4():
 
 @pytest.fixture
 def board5():
-        board = BoardIO.get_board(0)
+        board = Board()
         board.bypass_validation_move("e2e4")  
         board.bypass_validation_move("c8g4")  
         return board

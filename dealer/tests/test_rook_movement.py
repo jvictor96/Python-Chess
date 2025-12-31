@@ -1,12 +1,12 @@
 import pytest
-from board import Board, BoardIO
+from board import Board
 from piece import Color, Knight, Rook
 
 # game id 1 had one white rook at d4, h1 and c1 free and one white bishop at e4
 
 @pytest.fixture
 def board():
-        board = BoardIO.get_board(0)
+        board = Board()
         board.bypass_validation_move("h1d4")  
         board.bypass_validation_move("c1e4")  
         return board
