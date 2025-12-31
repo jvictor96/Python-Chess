@@ -20,13 +20,13 @@ class DaemonState():
     end_game: int
     state: State
     games: list[int]
-    old_state: "DaemonState"
 
     def __init__(self, new_game: NewGame, end_game: int, state: State, games: list[int]):
         self.new_game = new_game
         self.end_game = end_game
         self.state = state
         self.games = games
+        self.state = State.IDLE
     
     @staticmethod
     def get_path() -> str:
@@ -67,13 +67,15 @@ class DaemonState():
         return self
     
     def clear(self):
-        self.old_state.end_game = self.end_game
-        self.old_state.new_game = self.new_game
-        self.old_state.state = self.state
+        old_state = DaemonState(
+            end_game = self.end_game,
+            new_game = self.new_game,
+            state = self.state,
+        )
         self.end_game = 0
         self.new_game = NewGame("", "")
         self.state = State.IDLE
-        return self
+        return old_state
 
     def burn(self):
         with open(f"{DaemonState.get_path()}/daemon.json", "w") as daemon:
@@ -81,5 +83,5 @@ class DaemonState():
                        "end_game": self.end_game,
                        "state": self.state,
                        "games": self.games
-                       })
-        return self.old_state
+                       }, daemon)
+        return self

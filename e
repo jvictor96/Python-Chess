@@ -1,0 +1,20 @@
++# Virtual environments
++.venv/
++venv/
++env/
++
++# Python bytecode
++*.pyc
++__pycache__/
++
++# IDE/Editor specific files
++.idea/
++.vscode/
++
++# Build artifacts
++build/
++dist/
++
++# Sensitive files
++.env
+\ No newline at end of file
