@@ -1,6 +1,7 @@
 from enum import Enum
 import json
 import os
+from board import GameStateAdapter
 
 
 class State(Enum):
@@ -17,14 +18,14 @@ class Piece():
         self.color = color
         self.position = position
 
-class DaemonState():
+class GameStateAdapter(GameStatePort):
     movements: list[str]
     state: State
     black: str
     white: str
     game_id: int
     pieces: list[Piece]
-    old_state: "DaemonState"
+    old_state: "GameStateAdapter"
 
     def __init__(self, game_id: int, movements: list[str], black: str, white: str, pieces: list[Piece]):
         self.movements = movements
@@ -39,22 +40,22 @@ class DaemonState():
         return f"{os.environ['HOME']}/python_chess"
     
     @staticmethod
-    def get_state(game_id: int) -> "DaemonState":
-        with open(f"{DaemonState.get_path()}/game_{game_id}.json", "r+") as game:
+    def get_state(game_id: int) -> "GameStateAdapter":
+        with open(f"{GameStateAdapter.get_path()}/game_{game_id}.json", "r+") as game:
             control_fields = json.load(game)
-            return DaemonState(
+            return GameStateAdapter(
                 game_id=game_id,
                 movements = control_fields["movements"],
                 black = control_fields["black"],
                 white = control_fields["white"],
                 pieces = [Piece(piece["piece"], piece["color"], piece["position"]) for piece in control_fields["pieces"]])
 
-    def pieces(self, pieces: list[Piece]):
+    def set_pieces(self, pieces: list[Piece]):
         self.pieces = pieces
         self.state = State.JUST_UPDATED
         return self
 
-    def movements(self, movements: list[str]):
+    def set_movements(self, movements: list[str]):
         self.movements = movements
         self.state = State.JUST_UPDATED
         return self
@@ -64,7 +65,7 @@ class DaemonState():
         return self
         
     def burn(self):
-        with open(f"{DaemonState.get_path()}/game_{self.game_id}.json", "w") as game:
+        with open(f"{GameStateAdapter.get_path()}/game_{self.game_id}.json", "w") as game:
             json.dump({"movements": self.movements,
                         "pieces": self.pieces,
                         "state": self.state,
