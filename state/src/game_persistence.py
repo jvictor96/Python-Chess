@@ -1,10 +1,15 @@
 import json
 import os
-from board import GamePersistencePort, Board, BoardSerializer, GameViewerPort
+from board import Board, BoardSerializer
+from ports import GamePersistencePort, GameViewerPort
 from piece import PieceSerializer, Color
 from position import Position
 
 class TextViewerAdapter(GameViewerPort):
+
+    def get_path(self) -> str:
+        return f"{os.environ['HOME']}/python_chess"
+    
     def display(self, board: Board) -> list[str]:
         path = board
         board_representation = ["   a b c d e f g h"]
@@ -19,9 +24,9 @@ class TextViewerAdapter(GameViewerPort):
                 else:
                     row += ". "
             board_representation.append(row.strip())
-        with open(f"{self.path}/game_{board.game_id}_white.json", "w") as output_file:
+        with open(f"{self.get_path()}/game_{board.game_id}_white.json", "w") as output_file:
             [output_file.write(line + "\n") for line in board_representation]
-        with open(f"{self.path}/game_{board.game_id}_black.json", "w") as output_file:
+        with open(f"{self.get_path()}/game_{board.game_id}_black.json", "w") as output_file:
             [output_file.write(board_representation[index][::-1] + "\n") for index in range(len(board_representation)-1, -1, -1)]
 
 class FileGamePersistenceAdapter(GamePersistencePort):
@@ -29,12 +34,11 @@ class FileGamePersistenceAdapter(GamePersistencePort):
     def get_path(self) -> str:
         return f"{os.environ['HOME']}/python_chess"
 
-    @staticmethod
-    def get_board(game_id: int) -> "Board":
+    def get_board(self, game_id: int) -> "Board":
         if game_id == 0:
-            return FileGamePersistenceAdapter.get_new_board()
+            return Board()
         board: Board
-        with open(f"{FileGamePersistenceAdapter.get_path()}/game_{game_id}.json", "r") as file:
+        with open(f"{self.get_path()}/game_{game_id}.json", "r") as file:
             game = json.load(file)
             board = Board(
                 [PieceSerializer.deserialize(piece) for piece in game["pieces"]], 
@@ -44,9 +48,8 @@ class FileGamePersistenceAdapter(GamePersistencePort):
                 game_id)
         return board
 
-    @staticmethod
-    def burn(board: "Board", game_id: int):
-        with open(f"{FileGamePersistenceAdapter.get_path()}/game_{game_id}.json", "w") as file:
+    def burn(self, board: "Board"):
+        with open(f"{self.get_path()}/game_{board.game_id}.json", "w") as file:
             game = {
                 "pieces": [PieceSerializer.serialize(piece) for piece in board.pieces],
                 "movements": board.movements,
