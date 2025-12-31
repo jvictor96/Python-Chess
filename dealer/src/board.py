@@ -124,20 +124,19 @@ class Board:
     def get_king(self, color: Color) -> Piece:
         return next(piece for piece in self.pieces if piece.color == color and piece_map[type(piece)] == "K")
 
-    @staticmethod
-    def update_state(board: "Board", movement: Movement, bypass_movements_append: bool = False) -> "Board":
-        piece = board.positions.get(movement.start_pos)
+    def update_positions(self: "Board", movement: Movement, bypass_movements_append: bool = False) -> "Board":
+        piece = self.positions.get(movement.start_pos)
         piece.position = movement.end_pos
         if not bypass_movements_append:
-            board.movements.append(movement)
-        board.positions.pop(movement.start_pos)
-        board.positions[movement.end_pos] = piece
-        board.pieces = [piece for pos, piece in board.positions.items()]
-        return board
+            self.movements.append(movement)
+        self.positions.pop(movement.start_pos)
+        self.positions[movement.end_pos] = piece
+        self.pieces = [piece for pos, piece in self.positions.items()]
+        return self
 
     def bypass_validation_move(self, movement: str) -> "Board":
         movement = Movement.from_string(movement, self.positions)
-        return Board.update_state(self, movement, bypass_movements_append=True)
+        self.update_positions(movement, bypass_movements_append=True)
 
     def move(self: "Board", movement: str):
         movement: Movement = Movement.from_string(movement, self.positions)
@@ -146,7 +145,7 @@ class Board:
             piece.color == Color.WHITE and len(self.movements) % 2 == 0,
             piece.color == Color.BLACK and len(self.movements) % 2 == 1])
         self.legal = all([movement.is_valid(), right_turn])
-        return Board.update_state(self, movement) if self.legal else self
+        self.update_positions(movement) if self.legal else self
 
 class GamePersistencePort(ABC):
     

@@ -8,8 +8,8 @@ import pytest
 @pytest.fixture
 def board():
         board = Board()
-        board = board.bypass_validation_move("h1d4")  
-        board = board.bypass_validation_move("c1e4")  
+        board.bypass_validation_move("h1d4")  
+        board.bypass_validation_move("c1e4")  
         return board
 
 def test_minor_roque(board: Board):

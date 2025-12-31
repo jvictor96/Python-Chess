@@ -7,9 +7,9 @@ from piece import King, Queen, Pawn
 @pytest.fixture
 def king_in_check_by_bishop():
         board = Board()
-        board = board.bypass_validation_move("d2d4")  
-        board = board.bypass_validation_move("e2e4")  
-        board = board.bypass_validation_move("f8b4")  
+        board.bypass_validation_move("d2d4")  
+        board.bypass_validation_move("e2e4")  
+        board.bypass_validation_move("f8b4")  
         return board
 
 # game id 4 had black bishop at b4
