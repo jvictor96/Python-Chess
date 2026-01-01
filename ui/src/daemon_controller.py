@@ -3,13 +3,15 @@ import os
 from pathlib import Path
 from ports import GamePersistencePort
 from keyboard_input import KeyboardInput
+from machine_core import DaemonState, DaemonStateMachine, DaemonMessage, NewGame
 
 
 class DaemonController():
 
-    def __init__(self, keyboard: KeyboardInput, game_persistence_port: GamePersistencePort):
+    def __init__(self, keyboard: KeyboardInput, game_persistence_port: GamePersistencePort, state_machine: DaemonStateMachine):
         self.path = f"{os.environ['HOME']}/python_chess"
         self.keyboard = keyboard
+        self.state_machine = state_machine
         self.game_persistence_port = game_persistence_port
         self.print_screenrc()
         
@@ -31,14 +33,11 @@ class DaemonController():
         game_id = 0
         white = self.keyboard.read("Who are you? ").strip()
         black = self.keyboard.read("Who are you challenging? ").strip()
-        with open(f"{self.path}/daemon.json", "r+") as daemon:
-            control_fields = json.load(daemon)
-            control_fields["new_game"]["white"] = white
-            control_fields["new_game"]["black"] = black
-            game_id = control_fields["next_id"]
-            daemon.seek(0)
-            daemon.truncate()
-            json.dump(control_fields, daemon)
+        msg = DaemonMessage(new_game=NewGame(white=white, black=black), 
+                      next_id=self.state_machine.message.next_id,
+                      end_game=0,
+                      daemon_state=DaemonState.COMMAND_SENT)
+        self.state_machine.post_task(msg)
         os.environ["GAME"] = str(game_id)
         os.environ["PLAYER"] = white
         os.environ["BOARD"] = "white"
@@ -46,15 +45,13 @@ class DaemonController():
 
     def join_game(self):
         player = self.keyboard.read("Who are you? ").strip()
-        with open(f"{self.path}/daemon.json", "r") as daemon:
-            control_fields = json.load(daemon)
-            print("Available games:")
-            for game in control_fields["games"]:
-                game_data = self.game_persistence_port.get_board(game)
-                white = game_data.white
-                black = game_data.black
-                if player == white or player == black:
-                    print(f"Game ID: {game}, White: {white}, Black: {black}")
+        print("Available games:")
+        for game in [file[5:-5] for file in os.listdir("python_chess") if len([l for l in file if l == "_"]) == 1]:
+            game_data = self.game_persistence_port.get_board(game)
+            white = game_data.white
+            black = game_data.black
+            if player == white or player == black:
+                print(f"Game ID: {game}, White: {white}, Black: {black}")
         game_id = self.keyboard.read("Enter the Game ID you want to join: ").strip()
         os.environ["GAME"] = game_id
         os.environ["PLAYER"] = player

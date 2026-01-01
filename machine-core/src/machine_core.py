@@ -4,13 +4,15 @@ from abc import ABC, abstractmethod
 import time
 
 class PlayerState(Enum):
-    IDLE = "IDLE"
+    BLACK_TURN = "BLACK_TURN"
+    WHITE_TURN = "WHITE_TURN"
     PLAYED = "PLAYED"
     BOARD_UPDATED = "BOARD_UPDATED"
     SHOWN = "SHOWN"
 
 class DaemonState(Enum):
     IDLE = "IDLE"
+    DIGESTED = "DIGESTED"
     COMMAND_SENT = "COMMAND_SENT"
 
 @dataclass
@@ -53,9 +55,17 @@ class DaemonHookController(ABC):
     def main_loop(self):
         pass
 
+    @abstractmethod
+    def post_task(self):
+        pass
+
 class PlayerHookController(ABC):
     @abstractmethod
     def register(self, handler: PlayerStateHandler, state: PlayerState):
+        pass
+
+    @abstractmethod
+    def post_task(self):
         pass
 
     @abstractmethod
@@ -85,6 +95,9 @@ class DaemonStateMachine(DaemonHookController):
                 while self.message.daemon_state != DaemonState.IDLE:
                     self.message = self.handler_map[self.message.daemon_state](self.workload.pop(0))
 
+    def post_task(self, msg: DaemonMessage):
+        self.workload.append(msg)
+
 class PlayerStateMachine(PlayerHookController):
     workload: list[PlayerMessage]
     message: PlayerMessage | None
@@ -107,3 +120,6 @@ class PlayerStateMachine(PlayerHookController):
                 self.message = self.handler_map[PlayerState.IDLE](self.workload.pop(0))
                 while self.message.player_state != PlayerState.IDLE:
                     self.message = self.handler_map[self.message.player_state](self.workload.pop(0))
+
+    def post_task(self, msg: PlayerMessage):
+        self.workload.append(msg)

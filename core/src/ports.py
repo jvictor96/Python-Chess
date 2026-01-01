@@ -14,5 +14,9 @@ class GamePersistencePort(ABC):
         pass
         
     @abstractmethod
+    def delete_game(self, board: int):
+        pass
+        
+    @abstractmethod
     def burn(self, board: Board):
         pass

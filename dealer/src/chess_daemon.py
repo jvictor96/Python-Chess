@@ -1,69 +1,37 @@
-import time
-import os, json
-from ports import GamePersistencePort, GameViewerPort
+from ports import GamePersistencePort
 from board import Board
+from machine_core import DaemonStateHandler, PlayerStateHandler, DaemonState, PlayerState
 
-class ChessDaemon:
-    def __init__(self, game_persistence_adapter: GamePersistencePort, game_viewer_adapter: GameViewerPort):
+class ChessDaemon(DaemonStateHandler):
+    def __init__(self, game_persistence_adapter: GamePersistencePort):
         self.game_persistence_adapter = game_persistence_adapter
-        self.game_viewer_adapter = game_viewer_adapter
-        self.path = f"{os.environ['HOME']}/python_chess"
 
-    def main_loop(self):
-        try:
-            os.mkdir(self.path)
-        except Exception as e:
-            pass
-        while True:
-            time.sleep(0.1)
-            try:
-                with open(f"{self.path}/daemon.json", "r+") as daemon:
-                    control_fields = json.load(daemon)
-                    for game in control_fields["games"]:
-                        self.update_game(game)
-                    if control_fields["new_game"]["white"] != "":
-                        white = control_fields["new_game"]["white"]
-                        black = control_fields["new_game"]["black"]
-                        control_fields["new_game"] = { "white": "", "black": "" }
-                        control_fields["games"].append(control_fields["next_id"])
-                        board = Board(white=white, black=black, game_id=control_fields["next_id"])
-                        self.game_persistence_adapter.burn(board)
-                        self.reprint_input(
-                            game_id=control_fields["next_id"])
-                        self.game_viewer_adapter.display(board)
-                        control_fields["next_id"] += 1
-                    if control_fields["end_game"] > 0:
-                        control_fields["games"].remove(control_fields["end_game"])
-                        control_fields["end_game"] = 0
-                    daemon.seek(0)
-                    daemon.truncate()
-                    json.dump(control_fields, daemon)
-            except FileNotFoundError as e:
-                with open(f"{self.path}/daemon.json", "x+") as daemon:
-                    if len(daemon.readlines()) == 0:
-                        control_fields = {
-                            "games": [],
-                            "new_game": { "white": "", "black": "" },
-                            "next_id": 1,
-                            "end_game": 0
-                        }
-                        daemon.seek(0)
-                        daemon.truncate()
-                        json.dump(control_fields, daemon)
+    def __call__(self, msg):
+        if msg.new_game != None:
+            white = msg.new_game.white
+            black = msg.new_game.black
+            board = Board(white=white, black=black, game_id=msg.next_id)
+            msg.next_id = msg.next_id + 1
+            msg.new_game = None
+            self.game_persistence_adapter.burn(board)
+        if msg.end_game > 0:
+            self.game_persistence_adapter.delete_game(msg.end_game)
+            msg.end_game = 0
+        msg.daemon_state = DaemonState.DIGESTED
+        return msg
 
-    def update_game(self, game: int):
-        with open(f"{self.path}/game_{game}_input.json", "r+") as game_file:
-            game_control_fields = json.load(game_file)
-            if game_control_fields["move"] != "":
-                board = self.game_persistence_adapter.get_board(game)
-                board.move(game_control_fields["move"])
-                self.game_persistence_adapter.burn(board)
-                self.reprint_input(game, "" if board.legal else "Illegal move")
-                self.game_viewer_adapter.display(board)
+class ChessDealer(PlayerStateHandler):
+    def __init__(self, game_persistence_adapter: GamePersistencePort):
+        self.game_persistence_adapter = game_persistence_adapter
 
-    def reprint_input(self, game_id: int, error: str = ""):
-        game_control_fields = json.loads("{}")
-        game_control_fields["move"] = ""
-        game_control_fields["error"] = error
-        with open(f"{self.path}/game_{game_id}_input.json", "w") as input_file:
-            json.dump(game_control_fields, input_file)
+    def __call__(self, msg):
+        board = self.game_persistence_adapter.get_board(msg.game)
+        board.move(msg.move)
+        self.game_persistence_adapter.burn(board)
+        msg.move = ""
+        msg.error = "Illegal movement"
+        msg.player_state = PlayerState.PLAYED
+
+class DaemonCleanUp(DaemonStateHandler):
+    def __call__(self, msg):
+        msg.daemon_state = DaemonStateHandler.IDLE
