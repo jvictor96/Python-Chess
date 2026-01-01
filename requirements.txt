@@ -1,0 +1,5 @@
+-e core
+-e ui
+-e state
+-e machine-core
+-e dealer
