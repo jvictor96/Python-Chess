@@ -2,13 +2,13 @@ import json
 import os
 from pathlib import Path
 from ports import GamePersistencePort
-from keyboard_input import KeyboardInput
+from keyboard_input import KeyboardInputPort
 from machine_core import DaemonState, DaemonStateMachine, DaemonMessage, NewGame
 
 
 class DaemonController():
 
-    def __init__(self, keyboard: KeyboardInput, game_persistence_port: GamePersistencePort, state_machine: DaemonStateMachine):
+    def __init__(self, keyboard: KeyboardInputPort, game_persistence_port: GamePersistencePort, state_machine: DaemonStateMachine):
         self.path = f"{os.environ['HOME']}/python_chess"
         self.keyboard = keyboard
         self.state_machine = state_machine

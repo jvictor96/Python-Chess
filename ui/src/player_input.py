@@ -1,10 +1,12 @@
 import os
 from machine_core import PlayerStateHandler, PlayerState
 from ports import GamePersistencePort
+from keyboard_input import KeyboardInputPort
 
 class CrudeShellPlayerInputUI(PlayerStateHandler):
 
-    def __init__(self, persistence: GamePersistencePort):
+    def __init__(self, persistence: GamePersistencePort, keyboard: KeyboardInputPort):
+        self.keyboard = keyboard
         self.persistence = persistence
 
     def __call__(self, msg):
@@ -19,7 +21,6 @@ class CrudeShellPlayerInputUI(PlayerStateHandler):
             print("Waiting for opponent's move...")
             return msg
         print("It's your turn.")
-        movement = input("Enter your move (e.g., e2e4): ").strip()
-        msg.move = movement
-        msg.player_state = PlayerState.PLAYED
+        movement = self.keyboard.read("Enter your move (e.g., e2e4): ").strip()
+        msg.play(movement)
         return msg

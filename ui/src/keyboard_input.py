@@ -1,16 +1,16 @@
 from abc import ABC, abstractmethod
 
 
-class KeyboardInput(ABC):
+class KeyboardInputPort(ABC):
     @abstractmethod
     def read(self, prompt: str) -> str:
         pass
 
-class PhysicalKeyboard(KeyboardInput):
+class PhysicalKeyboard(KeyboardInputPort):
     def read(self, prompt: str):
         return input(prompt)
     
-class InMemoryKeyboard(KeyboardInput):
+class InMemoryKeyboard(KeyboardInputPort):
     outputs: list[str]
 
     def __init__(self):

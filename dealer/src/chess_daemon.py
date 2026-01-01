@@ -1,23 +1,18 @@
 from ports import GamePersistencePort
 from board import Board
-from machine_core import DaemonStateHandler, PlayerStateHandler, DaemonState, PlayerState
+from machine_core import DaemonStateHandler, PlayerStateHandler
 
 class ChessDaemon(DaemonStateHandler):
     def __init__(self, game_persistence_adapter: GamePersistencePort):
         self.game_persistence_adapter = game_persistence_adapter
 
     def __call__(self, msg):
-        if msg.new_game != None:
-            white = msg.new_game.white
-            black = msg.new_game.black
-            board = Board(white=white, black=black, game_id=msg.next_id)
-            msg.next_id = msg.next_id + 1
-            msg.new_game = None
+        if new_game:=msg.consume_new_game():
+            board = Board(white=new_game.white, black=new_game.black, game_id=msg.get_next_id())
             self.game_persistence_adapter.burn(board)
-        if msg.end_game > 0:
-            self.game_persistence_adapter.delete_game(msg.end_game)
-            msg.end_game = 0
-        msg.daemon_state = DaemonState.DIGESTED
+        if end_game:=msg.consume_end_game():
+            self.game_persistence_adapter.delete_game(end_game)
+        msg.mark_as_digested()
         return msg
 
 class ChessDealer(PlayerStateHandler):
@@ -29,9 +24,9 @@ class ChessDealer(PlayerStateHandler):
         board.move(msg.move)
         self.game_persistence_adapter.burn(board)
         msg.move = ""
-        msg.error = "Illegal movement"
-        msg.player_state = PlayerState.PLAYED
-
+        msg.error = "" if board.legal else "Illegal movement"
+        msg.change_turn() if board.legal else msg.return_turn()
+        
 class DaemonCleanUp(DaemonStateHandler):
     def __call__(self, msg):
-        msg.daemon_state = DaemonStateHandler.IDLE
+        msg.free()

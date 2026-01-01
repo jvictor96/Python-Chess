@@ -6,8 +6,8 @@ import time
 class PlayerState(Enum):
     BLACK_TURN = "BLACK_TURN"
     WHITE_TURN = "WHITE_TURN"
-    PLAYED = "PLAYED"
-    BOARD_UPDATED = "BOARD_UPDATED"
+    WHITE_PLAYED = "WHITE_PLAYED"
+    BLACK_PLAYED = "BLACK_PLAYED"
     SHOWN = "SHOWN"
 
 class DaemonState(Enum):
@@ -27,12 +27,49 @@ class PlayerMessage():
     error: str
     player_state: PlayerState
 
+    def play(self, move: str):
+        self.move = move
+        self.player_state = PlayerState.WHITE_PLAYED if self.player_state == PlayerState.WHITE_TURN else PlayerState.BLACK_PLAYED
+
+    def show(self):
+        self.player_state = PlayerState.SHOWN
+        return self.game
+
+    def change_turn(self):
+        self.player_state = PlayerState.BLACK_TURN if self.player_state == PlayerState.WHITE_PLAYED else PlayerState.WHITE_TURN
+
+    def return_turn(self):
+        self.player_state = PlayerState.WHITE_TURN if self.player_state == PlayerState.WHITE_PLAYED else PlayerState.BLACK_TURN
+
 @dataclass
 class DaemonMessage():
     new_game: NewGame
     end_game: int
     next_id: int
     daemon_state: DaemonState
+
+    def get_next_id(self):
+        self.next_id += 1
+        return self.next_id
+    
+    def consume_new_game(self):
+        ans = self.new_game
+        self.new_game = None
+        return ans
+    
+    def consume_end_game(self):
+        ans = self.end_game
+        self.end_game = 0
+        return ans
+
+    def free(self):
+        self.player_state = DaemonState.IDLE
+
+    def mark_as_filled(self):
+        self.player_state = DaemonState.COMMAND_SENT
+
+    def mark_as_digested(self):
+        self.player_state = DaemonState.DIGESTED
 
 class PlayerStateHandler(ABC):
 
@@ -46,33 +83,7 @@ class DaemonStateHandler(ABC):
     def __call__(self, msg: DaemonMessage) -> DaemonMessage:
         pass
 
-class DaemonHookController(ABC):
-    @abstractmethod
-    def register(self, handler: DaemonStateHandler, state: DaemonState):
-        pass
-
-    @abstractmethod
-    def main_loop(self):
-        pass
-
-    @abstractmethod
-    def post_task(self):
-        pass
-
-class PlayerHookController(ABC):
-    @abstractmethod
-    def register(self, handler: PlayerStateHandler, state: PlayerState):
-        pass
-
-    @abstractmethod
-    def post_task(self):
-        pass
-
-    @abstractmethod
-    def main_loop(self):
-        pass
-
-class DaemonStateMachine(DaemonHookController):
+class DaemonStateMachine():
     workload: list[DaemonMessage]
     message: DaemonMessage
     handler_map: dict[DaemonState, DaemonStateHandler]
@@ -98,7 +109,7 @@ class DaemonStateMachine(DaemonHookController):
     def post_task(self, msg: DaemonMessage):
         self.workload.append(msg)
 
-class PlayerStateMachine(PlayerHookController):
+class PlayerStateMachine():
     workload: list[PlayerMessage]
     message: PlayerMessage | None
     handler_map: dict[PlayerState, PlayerStateHandler]
