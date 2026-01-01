@@ -1,12 +1,12 @@
 import json
 import pytest
 
-from daemon_controller import DaemonController
+from daemon_controller import DealerInput
 from keyboard_input import InMemoryKeyboard
 
 @pytest.fixture
 def controller():
-    controller = DaemonController(InMemoryKeyboard())
+    controller = DealerInput(InMemoryKeyboard())
     with open(f"{controller.path}/daemon.json", "r+") as daemon:
         control_fields = json.load(daemon)
         control_fields["new_game"]["white"] = ""
@@ -16,7 +16,7 @@ def controller():
         json.dump(control_fields, daemon)
     return controller
 
-def test_new_game(controller: DaemonController):
+def test_new_game(controller: DealerInput):
     with open(f"{controller.path}/daemon.json", "r+") as daemon:
         control_fields = json.load(daemon)
         assert control_fields["new_game"]["white"] == ""

@@ -1,5 +1,5 @@
-from daemon_controller import DaemonController
+from daemon_controller import DealerInput
 from keyboard_input import PhysicalKeyboard
 from game_persistence import FileGamePersistenceAdapter
 
-DaemonController(PhysicalKeyboard(), FileGamePersistenceAdapter()).read_action()
+DealerInput(PhysicalKeyboard(), FileGamePersistenceAdapter()).read_action()

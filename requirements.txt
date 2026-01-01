@@ -3,3 +3,4 @@
 -e state
 -e machine-core
 -e dealer
+-e opponent

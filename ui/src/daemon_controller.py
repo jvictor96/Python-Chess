@@ -6,7 +6,7 @@ from keyboard_input import KeyboardInputPort
 from machine_core import DaemonState, DaemonStateMachine, DaemonMessage, NewGame
 
 
-class DaemonController():
+class DealerInput():
 
     def __init__(self, keyboard: KeyboardInputPort, game_persistence_port: GamePersistencePort, state_machine: DaemonStateMachine):
         self.path = f"{os.environ['HOME']}/python_chess"

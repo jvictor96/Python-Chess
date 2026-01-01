@@ -1,8 +1,8 @@
 from ports import GamePersistencePort
 from board import Board
-from machine_core import DaemonStateHandler, PlayerStateHandler
+from machine_core import DealerStateHandler, MovementStateHandler
 
-class ChessDaemon(DaemonStateHandler):
+class Dealer(DealerStateHandler):
     def __init__(self, game_persistence_adapter: GamePersistencePort):
         self.game_persistence_adapter = game_persistence_adapter
 
@@ -15,7 +15,7 @@ class ChessDaemon(DaemonStateHandler):
         msg.mark_as_digested()
         return msg
 
-class ChessDealer(PlayerStateHandler):
+class Moderator(MovementStateHandler):
     def __init__(self, game_persistence_adapter: GamePersistencePort):
         self.game_persistence_adapter = game_persistence_adapter
 
@@ -27,6 +27,6 @@ class ChessDealer(PlayerStateHandler):
         msg.error = "" if board.legal else "Illegal movement"
         msg.change_turn() if board.legal else msg.return_turn()
         
-class DaemonCleanUp(DaemonStateHandler):
+class DealerCleanUp(DealerStateHandler):
     def __call__(self, msg):
         msg.free()
