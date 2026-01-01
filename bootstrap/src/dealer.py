@@ -11,7 +11,7 @@ from opponent_listener import OpponentListener
 
 from machine_core import MovementStateMachine, DealerStateMachine, MovementState, DealerState
 
-movement_machine = MovementStateMachine()
+movement_machine = MovementStateMachine()  # TODO: Start it at starting stage to load persistent data and decide if it's idle or at the player's turn
 dealer_machine = DealerStateMachine()
 
 file_persistence = FileGamePersistenceAdapter()
@@ -39,7 +39,7 @@ dealer_input = DealerInput(
     game_persistence_port=file_persistence,
     keyboard=physical_keyboard,
     dealer_machine=dealer_machine     # This is actually to handle the idle, it has access to the machine to send a message for a new game
-)                                     # TODO: maybe create a ExternalEventSource interface
+)                                     # TODO: maybe create a ExternalEventSource interface and a special register to link it to idle
 
 movement_machine.register(             # TODO: Put a to_states={MovementState.WHITE_TURN} at register
     handler=movement_input,
