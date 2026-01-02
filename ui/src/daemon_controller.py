@@ -1,8 +1,7 @@
 import os
-from pathlib import Path
 from ports import GamePersistencePort
 from keyboard_input import KeyboardInputPort
-from machine_core import DealerState, DealerMessage, Players
+from machine_core import DealerState, DealerMessage, Players, MovementMessage
 from dealer_interface import DealerInterface
 from human_interface import HumanInterfacePort
 
@@ -28,11 +27,11 @@ class DealerInput():
         black = self.keyboard.read("Who are you challenging? ").strip()
         players = Players(white=self.user, black=black)
         msg = DealerMessage(new_game=players, 
-                      next_id=self.state_machine.message.next_id,
                       end_game=0,
-                      daemon_state=DealerState.COMMAND_SENT)
+                      dealer_state=DealerState.COMMAND_SENT)
         self.dealer_interface.send_message(msg)
-        self.human_interface_port(game_id, self.user)
+        msg = MovementMessage(game=self.game_persistence_port.next_id())
+        self.human_interface_port(msg)
 
     def join_game(self):
         print("Available games:")

@@ -1,7 +1,7 @@
 import os, json
 from dataclasses import asdict
 from abc import ABC, abstractmethod
-from machine_core import DealerMessage, NewGame
+from machine_core import DealerMessage, Players
 from external_event_source import ExternalEventSource
 from typing import Iterable
 
@@ -24,7 +24,7 @@ class FileDealerInterface(DealerMessage):
         with open(f"{self.path}/dealer.fifo", "r") as ff:
             content = json.load(ff)
         return [DealerMessage(
-            new_game=NewGame(white=content["white"], black=content["black"]),
+            new_game=Players(white=content["white"], black=content["black"]),
             end_game=content["end_game"],
             next_id=content["next_id"])
             ]

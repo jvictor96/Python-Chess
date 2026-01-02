@@ -23,8 +23,8 @@ class Players():
 
 @dataclass
 class MovementMessage(Message):
-    move: str
     game: int
+    move: str = ""
     error: str = ""
     player_state: MovementState = MovementState.IDLE
 
@@ -47,14 +47,9 @@ class MovementMessage(Message):
 
 @dataclass
 class DealerMessage(Message):
-    new_game: Players
-    end_game: int
-    next_id: int
-    dealer_state: DealerState
-
-    def get_next_id(self):
-        self.next_id += 1
-        return self.next_id
+    new_game: Players = None
+    end_game: int = 0
+    dealer_state: DealerState = DealerState.IDLE
     
     def consume_new_game(self):
         ans = self.new_game
@@ -96,7 +91,7 @@ class DealerStateMachine():
     def __init__(self):
         self.workload: list[DealerMessage] = []
         self.handler_map: dict[DealerState, DealerStateHandler] = {}
-        self.message: DealerMessage | None = None
+        self.message = DealerMessage(dealer_state=DealerState.IDLE)
     
     def register(self, handler: DealerStateHandler, state: DealerState):
         self.handler_map[state] = handler

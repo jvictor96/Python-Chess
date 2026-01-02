@@ -20,3 +20,7 @@ class GamePersistencePort(ABC):
     @abstractmethod
     def burn(self, board: Board):
         pass
+        
+    @abstractmethod
+    def next_id(self):
+        pass 

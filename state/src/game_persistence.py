@@ -5,15 +5,17 @@ from ports import GamePersistencePort
 from piece import PieceSerializer
 
 class FileGamePersistenceAdapter(GamePersistencePort):
-
-    def get_path(self) -> str:
-        return f"{os.environ['HOME']}/python_chess"
+    def __init__(self):
+        self.path = f"{os.environ['HOME']}/python_chess"
+        if f"dealer.json" not in os.listdir(self.path):
+            with open(f"{self.path}/dealer.json", "w") as file:
+                json.dump({"next_id": 1}, file)
 
     def get_board(self, game_id: int) -> "Board":
         if game_id == 0:
             return Board()
         board: Board
-        with open(f"{self.get_path()}/game_{game_id}.json", "r") as file:
+        with open(f"{self.path}/game_{game_id}.json", "r") as file:
             game = json.load(file)
             board = Board(
                 [PieceSerializer.deserialize(piece) for piece in game["pieces"]], 
@@ -24,7 +26,7 @@ class FileGamePersistenceAdapter(GamePersistencePort):
         return board
 
     def burn(self, board: "Board"):
-        with open(f"{self.get_path()}/game_{board.game_id}.json", "w") as file:
+        with open(f"{self.path}/game_{board.game_id}.json", "w") as file:
             game = {
                 "pieces": [PieceSerializer.serialize(piece) for piece in board.pieces],
                 "movements": board.movements,
@@ -32,3 +34,11 @@ class FileGamePersistenceAdapter(GamePersistencePort):
                 "black": board.black,
             }
             json.dump(game, file, cls=BoardSerializer)
+
+    def delete_game(self, board):
+        os.remove(f"{self.path}/game_{board.game_id}.json")
+
+    def next_id(self):
+        with open(f"{self.path}/dealer.json", "r") as file:
+            game = json.load(file)
+        return game["next_id"]

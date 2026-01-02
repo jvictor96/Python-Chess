@@ -8,7 +8,7 @@ class Dealer(DealerStateHandler):
 
     def __call__(self, msg):
         if new_game:=msg.consume_new_game():
-            board = Board(white=new_game.white, black=new_game.black, game_id=msg.get_next_id())
+            board = Board(white=new_game.white, black=new_game.black, game_id=self.game_persistence_adapter.next_id())
             self.game_persistence_adapter.burn(board)
         if end_game:=msg.consume_end_game():
             self.game_persistence_adapter.delete_game(end_game)
