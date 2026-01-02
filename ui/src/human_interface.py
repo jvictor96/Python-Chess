@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import time
 from machine_core import MovementStateHandler, MovementMessage
 from player_input import ShellMovementInputUI
 from game_viewer import GameViewerPort
@@ -6,7 +7,10 @@ from game_viewer import GameViewerPort
 
 class HumanInterfacePort(MovementStateHandler, ABC):
     @abstractmethod
-    def __call__(game_id: int, player: str):
+    def __call__(msg):
+        pass
+    @abstractmethod
+    def play(msg: MovementMessage):
         pass
 
 class TerminalInterfaceAdapter(HumanInterfacePort):
@@ -19,3 +23,8 @@ class TerminalInterfaceAdapter(HumanInterfacePort):
         self.game_viewer.display(msg.game, self.user)
         msg = self.player_input.play(msg, self.user)
         return msg
+    
+    def play(self, msg):
+        self(msg)
+        while True:
+            time.sleep(10)

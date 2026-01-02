@@ -49,7 +49,7 @@ class MovementMessage(Message):
 class DealerMessage(Message):
     new_game: Players = None
     end_game: int = 0
-    dealer_state: DealerState = DealerState.IDLE
+    dealer_state: DealerState = DealerState.COMMAND_SENT
     
     def consume_new_game(self):
         ans = self.new_game
@@ -104,9 +104,9 @@ class DealerStateMachine():
             time.sleep(0.05)
             if self.message.dealer_state == DealerState.IDLE:
                 if self.workload:
-                    self.message = self.workload.pop[0]
+                    self.message = self.workload.pop(0)
                     while self.message.dealer_state != DealerState.IDLE:
-                        self.message = self.handler_map[self.message.dealer_state](self.workload.pop(0))
+                        self.message = self.handler_map[self.message.dealer_state](self.message)
                 elif messages:=self.external_event_source.poll():
                     self.workload.extend(messages)
 
@@ -134,6 +134,6 @@ class MovementStateMachine():
                 if self.workload:
                     self.message = self.workload.pop(0)
                     while self.message.player_state != MovementState.IDLE:
-                        self.message = self.handler_map[self.message.player_state](self.workload.pop(0))
+                        self.message = self.handler_map[self.message.player_state](self.message)
                 elif messages:=self.external_event_source.poll():
                     self.workload.extend(messages)

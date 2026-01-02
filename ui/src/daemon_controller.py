@@ -2,6 +2,7 @@ import os
 from ports import GamePersistencePort
 from keyboard_input import KeyboardInputPort
 from machine_core import DealerState, DealerMessage, Players, MovementMessage
+from machine_core import MovementState
 from dealer_interface import DealerInterface
 from human_interface import HumanInterfacePort
 
@@ -23,25 +24,25 @@ class DealerInput():
         
 
     def new_game(self):
-        game_id = 0
         black = self.keyboard.read("Who are you challenging? ").strip()
         players = Players(white=self.user, black=black)
         msg = DealerMessage(new_game=players, 
                       end_game=0,
                       dealer_state=DealerState.COMMAND_SENT)
         self.dealer_interface.send_message(msg)
-        msg = MovementMessage(game=self.game_persistence_port.next_id())
-        self.human_interface_port(msg)
+        msg = MovementMessage(game=self.game_persistence_port.next_id(), player_state=MovementState.WHITE_TURN)
+        self.human_interface_port.play(msg)
 
     def join_game(self):
         print("Available games:")
-        for game in [file[5:-5] for file in os.listdir("python_chess") if len([l for l in file if l == "_"]) == 1]:
+        for game in [file[5:-5] for file in os.listdir(self.path) if len([l for l in file if l == "_"]) == 1]:
             game_data = self.game_persistence_port.get_board(game)
             white = game_data.white
             black = game_data.black
             print(f"Game ID: {game}, White: {white}, Black: {black}")
         game_id = self.keyboard.read("Enter the Game ID you want to join: ").strip()
-        self.human_interface_port(game_id, self.user)
+        msg = MovementMessage(game=game_id, player_state=MovementState.BLACK_TURN if len(game_data.movements) % 2 else MovementState.WHITE_TURN)
+        self.human_interface_port.play(msg)
 
     def exit_program(self):
         print("Exiting program.")

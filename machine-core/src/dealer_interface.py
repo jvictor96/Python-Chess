@@ -24,9 +24,8 @@ class FileDealerInterface(DealerMessage):
         with open(f"{self.path}/dealer.fifo", "r") as ff:
             content = json.load(ff)
         return [DealerMessage(
-            new_game=Players(white=content["white"], black=content["black"]),
-            end_game=content["end_game"],
-            next_id=content["next_id"])
+            new_game=Players(white=content["new_game"]["white"], black=content["new_game"]["black"]),
+            end_game=content["end_game"])
             ]
     
     def send_message(self, message: DealerMessage) -> None:          # I know this implementation blocks the flow

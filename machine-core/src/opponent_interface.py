@@ -34,8 +34,8 @@ class FileOpponentInterface(OpponentInterface):
     def send_message(self, message: MovementMessage) -> None:          # I know this implementation blocks the flow
         board = self.persistence.get_board(message.game)
         other_user = [player for player in [board.black, board.white] if player != self.user][0]
-        if f"{other_user}.fifo" not in os.listdir(self.path):
-            os.mkfifo(f"{self.path}/{self.user}.fifo")
+        if not (f"{other_user}.fifo" in os.listdir(self.path)):
+            os.mkfifo(f"{self.path}/{other_user}.fifo")
         with open(f"{self.path}/{other_user}.fifo", "w") as ff:
             data = asdict(message)
             data.pop("player_state", None)

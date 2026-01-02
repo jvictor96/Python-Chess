@@ -1,5 +1,5 @@
 import os
-from machine_core import MovementState, MovementMessage
+from machine_core import MovementMessage
 from ports import GamePersistencePort
 from keyboard_input import KeyboardInputPort
 from opponent_interface import OpponentInterface
@@ -16,8 +16,8 @@ class ShellMovementInputUI():
         color = "white" if user == board.white else "black"
         print(f"Game between {board.white} (White) and {board.black} (Black). You are playing as {color}.")
         right_turn = [
-            msg.player_state == MovementState.BLACK_TURN and color == "black",
-            msg.player_state == MovementState.WHITE_TURN and color == "white"
+            len(board.movements) % 2 == 1 and color == "black",
+            len(board.movements) % 2 == 0 and color == "white"
         ]
 
         if not any(right_turn):
