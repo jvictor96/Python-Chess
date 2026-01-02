@@ -3,15 +3,16 @@ import os
 from pathlib import Path
 from ports import GamePersistencePort
 from keyboard_input import KeyboardInputPort
-from machine_core import DaemonState, DaemonStateMachine, DaemonMessage, NewGame
+from machine_core import DealerState, DealerMessage, NewGame
+from dealer_interface import DealerInterface
 
 
 class DealerInput():
 
-    def __init__(self, keyboard: KeyboardInputPort, game_persistence_port: GamePersistencePort, state_machine: DaemonStateMachine):
+    def __init__(self, keyboard: KeyboardInputPort, game_persistence_port: GamePersistencePort, dealer_interface: DealerInterface):
         self.path = f"{os.environ['HOME']}/python_chess"
         self.keyboard = keyboard
-        self.state_machine = state_machine
+        self.dealer_interface = dealer_interface
         self.game_persistence_port = game_persistence_port
         self.print_screenrc()
         
@@ -33,11 +34,11 @@ class DealerInput():
         game_id = 0
         white = self.keyboard.read("Who are you? ").strip()
         black = self.keyboard.read("Who are you challenging? ").strip()
-        msg = DaemonMessage(new_game=NewGame(white=white, black=black), 
+        msg = DealerMessage(new_game=NewGame(white=white, black=black), 
                       next_id=self.state_machine.message.next_id,
                       end_game=0,
-                      daemon_state=DaemonState.COMMAND_SENT)
-        self.state_machine.post_task(msg)
+                      daemon_state=DealerState.COMMAND_SENT)
+        self.dealer_interface.send_message(msg)
         os.environ["GAME"] = str(game_id)
         os.environ["PLAYER"] = white
         os.environ["BOARD"] = "white"

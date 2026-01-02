@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum
 from abc import ABC, abstractmethod
+from external_event_source import ExternalEventSource, Message
 import time
 
 class MovementState(Enum):
@@ -21,11 +22,11 @@ class NewGame():
     black: str
 
 @dataclass
-class PlayerMessage():
+class MovementMessage(Message):
     move: str
     game: int
-    error: str
-    player_state: MovementState
+    error: str = ""
+    player_state: MovementState = MovementState.IDLE
 
     def play(self, move: str):
         self.move = move
@@ -45,11 +46,11 @@ class PlayerMessage():
         self.player_state = MovementState.WHITE_TURN if self.player_state == MovementState.WHITE_PLAYED else MovementState.BLACK_TURN
 
 @dataclass
-class DealerMessage():
+class DealerMessage(Message):
     new_game: NewGame
     end_game: int
     next_id: int
-    daemon_state: DealerState
+    dealer_state: DealerState
 
     def get_next_id(self):
         self.next_id += 1
@@ -77,7 +78,7 @@ class DealerMessage():
 class MovementStateHandler(ABC):
 
     @abstractmethod
-    def __call__(self, msg: PlayerMessage) -> DealerMessage:
+    def __call__(self, msg: MovementMessage) -> DealerMessage:
         pass
 
 class DealerStateHandler(ABC):
@@ -90,6 +91,7 @@ class DealerStateMachine():
     workload: list[DealerMessage]
     message: DealerMessage
     handler_map: dict[DealerState, DealerStateHandler]
+    external_event_source: ExternalEventSource[DealerMessage]
 
     def __init__(self):
         self.workload: list[DealerMessage] = []
@@ -99,41 +101,44 @@ class DealerStateMachine():
     def register(self, handler: DealerStateHandler, state: DealerState):
         self.handler_map[state] = handler
 
-    def main_loop(self):
+    def set_event_source(self, event_source: ExternalEventSource[DealerMessage]):
+        self.external_event_source = event_source
+
+    async def main_loop(self):
         while True:
             time.sleep(0.05)
-            if self.message != None and self.message.daemon_state == DealerState.IDLE:
-                while len(self.workload) == 0:
-                    time.sleep(0.05)
-                self.message = self.handler_map[DealerState.IDLE](self.workload.pop(0))
-                while self.message.daemon_state != DealerState.IDLE:
-                    self.message = self.handler_map[self.message.daemon_state](self.workload.pop(0))
-
-    def post_task(self, msg: DealerMessage):
-        self.workload.append(msg)
+            if self.message.dealer_state == DealerState.IDLE:
+                if self.workload:
+                    self.message = self.workload.pop[0]
+                    while self.message.dealer_state != DealerState.IDLE:
+                        self.message = self.handler_map[self.message.dealer_state](self.workload.pop(0))
+                elif messages:=self.external_event_source.poll():
+                    self.workload.extend(messages)
 
 class MovementStateMachine():
-    workload: list[PlayerMessage]
-    message: PlayerMessage | None
+    workload: list[MovementMessage]
+    message: MovementMessage | None
     handler_map: dict[MovementState, MovementStateHandler]
+    external_event_source: ExternalEventSource[MovementMessage]
 
     def __init__(self):
-        self.workload: list[PlayerMessage] = []
+        self.workload: list[MovementMessage] = []
         self.handler_map: dict[MovementState, MovementStateHandler] = {}
-        self.message: PlayerMessage | None = None
+        self.message: MovementMessage | None = None
     
     def register(self, handler: MovementStateHandler, state: MovementState):
         self.handler_map[state] = handler
 
-    def main_loop(self):
+    def set_event_source(self, event_source: ExternalEventSource[MovementMessage]):
+        self.external_event_source = event_source
+
+    async def main_loop(self):
         while True:
             time.sleep(0.05)
-            if self.message != None and self.message.player_state == MovementState.IDLE:
-                while len(self.workload) == 0:
-                    time.sleep(0.05)
-                self.message = self.handler_map[MovementState.IDLE](self.workload.pop(0))
-                while self.message.player_state != MovementState.IDLE:
-                    self.message = self.handler_map[self.message.player_state](self.workload.pop(0))
-
-    def post_task(self, msg: PlayerMessage):
-        self.workload.append(msg)
+            if self.message.player_state == MovementState.IDLE:
+                if self.workload:
+                    self.message = self.workload.pop(0)
+                    while self.message.player_state != MovementState.IDLE:
+                        self.message = self.handler_map[self.message.player_state](self.workload.pop(0))
+                elif messages:=self.external_event_source.poll():
+                    self.workload.extend(messages)

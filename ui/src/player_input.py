@@ -1,21 +1,23 @@
 import os
-from machine_core import PlayerStateHandler, PlayerState
+from machine_core import MovementStateHandler, MovementState
 from ports import GamePersistencePort
 from keyboard_input import KeyboardInputPort
+from opponent_interface import OpponentInterface
 
-class ShellMovementInputUI(PlayerStateHandler):
+class ShellMovementInputUI(MovementStateHandler):
 
-    def __init__(self, persistence: GamePersistencePort, keyboard: KeyboardInputPort):
+    def __init__(self, persistence: GamePersistencePort, keyboard: KeyboardInputPort, opponent_interface: OpponentInterface):
         self.keyboard = keyboard
         self.persistence = persistence
+        self.opponent_interface = opponent_interface
 
     def __call__(self, msg):
         os.system('clear')
         board = self.persistence.get_board(msg.game)
         print(f"Game between {board.white} (White) and {board.black} (Black). You are playing as {os.environ['BOARD']}.")
         right_turn = [
-            msg.player_state == PlayerState.BLACK_TURN and os.environ['BOARD'] == "black",
-            msg.player_state == PlayerState.WHITE_TURN and os.environ['BOARD'] == "white"
+            msg.player_state == MovementState.BLACK_TURN and os.environ['BOARD'] == "black",
+            msg.player_state == MovementState.WHITE_TURN and os.environ['BOARD'] == "white"
         ]
 
         if not any(right_turn):
@@ -26,4 +28,5 @@ class ShellMovementInputUI(PlayerStateHandler):
         print("It's your turn.")
         movement = self.keyboard.read("Enter your move (e.g., e2e4): ").strip()
         msg.play(movement)
+        self.opponent_interface.send_message(msg)
         return msg
