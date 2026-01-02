@@ -12,7 +12,6 @@ class ShellMovementInputUI(MovementStateHandler):
         self.opponent_interface = opponent_interface
 
     def __call__(self, msg):
-        os.system('clear')
         board = self.persistence.get_board(msg.game)
         print(f"Game between {board.white} (White) and {board.black} (Black). You are playing as {os.environ['BOARD']}.")
         right_turn = [

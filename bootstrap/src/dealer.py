@@ -81,10 +81,7 @@ dealer_machine.register(
     state=DealerState.DIGESTED
 )
 
-# TODO: Load persisted games here
-
 asyncio.create_task(dealer_machine.main_loop())
 asyncio.create_task(movement_machine.main_loop())
 
-while True:
-    time.sleep(10)
+dealer_input.read_action()

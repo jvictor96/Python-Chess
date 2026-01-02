@@ -19,6 +19,7 @@ class TextViewerAdapter(GameViewerPort, PlayerStateHandler):
         return f"{os.environ['HOME']}/python_chess"
     
     def display(self, board: Board) -> list[str]:
+        os.system('clear')
         white_representation = ["   a b c d e f g h"]
         for y in range(8, 0, -1):
             row = f"{y}  "

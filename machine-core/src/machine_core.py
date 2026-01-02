@@ -17,7 +17,7 @@ class DealerState(Enum):
     COMMAND_SENT = "COMMAND_SENT"
 
 @dataclass
-class NewGame():
+class Players():
     white: str
     black: str
 
@@ -47,7 +47,7 @@ class MovementMessage(Message):
 
 @dataclass
 class DealerMessage(Message):
-    new_game: NewGame
+    new_game: Players
     end_game: int
     next_id: int
     dealer_state: DealerState
