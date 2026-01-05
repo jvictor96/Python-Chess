@@ -3,7 +3,6 @@ from board import Board
 from ports import GameViewerPort
 from piece import PieceSerializer, Color
 from position import Position
-from machine_core import MovementStateHandler
 from game_persistence import GamePersistencePort
 
 class TextViewerAdapter(GameViewerPort):

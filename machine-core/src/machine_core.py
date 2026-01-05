@@ -1,3 +1,4 @@
+import asyncio
 from dataclasses import dataclass
 from enum import Enum
 from abc import ABC, abstractmethod
@@ -5,10 +6,7 @@ from external_event_source import ExternalEventSource, Message
 import time
 
 class MovementState(Enum):
-    BLACK_TURN = "BLACK_TURN"
-    WHITE_TURN = "WHITE_TURN"
-    WHITE_PLAYED = "WHITE_PLAYED"
-    BLACK_PLAYED = "BLACK_PLAYED"
+    YOUR_TURN = "YOUR_TURN"
     IDLE = "IDLE"
 
 class DealerState(Enum):
@@ -28,22 +26,12 @@ class MovementMessage(Message):
     error: str = ""
     player_state: MovementState = MovementState.IDLE
 
-    def play(self, move: str):
-        self.move = move
-        self.player_state = MovementState.WHITE_PLAYED if self.player_state == MovementState.WHITE_TURN else MovementState.BLACK_PLAYED
-
     def pass_the_turn(self):
         self.player_state = MovementState.IDLE
 
-    def show(self):
-        self.change_turn()
-        return self.game
-
-    def change_turn(self):
-        self.player_state = MovementState.BLACK_TURN if self.player_state == MovementState.WHITE_PLAYED else MovementState.WHITE_TURN
-
-    def return_turn(self):
-        self.player_state = MovementState.WHITE_TURN if self.player_state == MovementState.WHITE_PLAYED else MovementState.BLACK_TURN
+    def play(self, move):
+        self.move = move
+        self.player_state = MovementState.IDLE
 
 @dataclass
 class DealerMessage(Message):
@@ -66,9 +54,6 @@ class DealerMessage(Message):
 
     def mark_as_filled(self):
         self.player_state = DealerState.COMMAND_SENT
-
-    def mark_as_digested(self):
-        self.player_state = DealerState.DIGESTED
 
 class MovementStateHandler(ABC):
 
@@ -101,8 +86,9 @@ class DealerStateMachine():
 
     async def main_loop(self):
         while True:
-            time.sleep(0.05)
+            await asyncio.sleep(0.05)
             if self.message.dealer_state == DealerState.IDLE:
+                print("dealer idle")
                 if self.workload:
                     self.message = self.workload.pop(0)
                     while self.message.dealer_state != DealerState.IDLE:
@@ -127,9 +113,11 @@ class MovementStateMachine():
     def set_event_source(self, event_source: ExternalEventSource[MovementMessage]):
         self.external_event_source = event_source
 
-    async def main_loop(self):
+    async def main_loop(self, movement_message: MovementMessage):
+        self.message = movement_message
+        print(self.message, flush=True)
         while True:
-            time.sleep(0.05)
+            await asyncio.sleep(0.05)
             if self.message.player_state == MovementState.IDLE:
                 if self.workload:
                     self.message = self.workload.pop(0)
@@ -137,3 +125,8 @@ class MovementStateMachine():
                         self.message = self.handler_map[self.message.player_state](self.message)
                 elif messages:=self.external_event_source.poll():
                     self.workload.extend(messages)
+            else:
+                print("else")
+                while self.message.player_state != MovementState.IDLE:
+                    print("while")
+                    self.message = self.handler_map[self.message.player_state](self.message)

@@ -12,7 +12,7 @@ class Dealer(DealerStateHandler):
             self.game_persistence_adapter.burn(board)
         if end_game:=msg.consume_end_game():
             self.game_persistence_adapter.delete_game(end_game)
-        msg.mark_as_digested()
+        msg.free()
         return msg
 
 class Moderator(MovementStateHandler):

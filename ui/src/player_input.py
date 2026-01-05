@@ -27,6 +27,11 @@ class ShellMovementInputUI():
         
         print("It's your turn.")
         movement = self.keyboard.read("Enter your move (e.g., e2e4): ").strip()
+        board.move(movement)
+        while not board.legal:
+            movement = self.keyboard.read("Enter your move (e.g., e2e4): ").strip()
+            board.move(movement)
+        self.persistence.burn(board)
         msg.play(movement)
         self.opponent_interface.send_message(msg)
         return msg

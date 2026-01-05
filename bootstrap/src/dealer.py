@@ -1,5 +1,6 @@
 import asyncio
 import threading
+import time
 from chess_daemon import Moderator, Dealer, DealerCleanUp
 
 from game_persistence import FileGamePersistenceAdapter
@@ -48,7 +49,8 @@ movement_input = ShellMovementInputUI(
 human_interface = TerminalInterfaceAdapter(
     user=user,
     game_viewer=viewer_adapater,
-    player_input=movement_input
+    player_input=movement_input,
+    persistence=file_persistence
 )
 
 dealer_input = DealerInput(
@@ -59,27 +61,14 @@ dealer_input = DealerInput(
     user=user
 )                                    
 
+
 movement_machine.set_event_source(opponent_interface)
 
 movement_machine.register(             # TODO: Put a to_states={MovementState.WHITE_TURN} at register
     handler=human_interface,
-    state=MovementState.BLACK_TURN
+    state=MovementState.YOUR_TURN
 )
 
-movement_machine.register(
-    handler=human_interface,
-    state=MovementState.WHITE_TURN
-)
-
-movement_machine.register(
-    handler=human_interface,
-    state=MovementState.WHITE_PLAYED
-)
-
-movement_machine.register(
-    handler=human_interface,
-    state=MovementState.BLACK_PLAYED
-)
 dealer_machine.set_event_source(dealer_interface)
 
 dealer_machine.register(
@@ -92,15 +81,16 @@ dealer_machine.register(
     state=DealerState.DIGESTED
 )
 
-async def async_main():
-    await asyncio.gather(
-        dealer_machine.main_loop(),
-        movement_machine.main_loop(),
-    )
+def start_async_dealer():
+    asyncio.run(dealer_machine.main_loop())
+threading.Thread(target=start_async_dealer, daemon=True).start()
 
-def start_async_loop():
-    asyncio.run(async_main())
+movement_message = dealer_input.read_action()
 
-threading.Thread(target=start_async_loop, daemon=True).start()
+def start_async_movement():
+    asyncio.run(movement_machine.main_loop(movement_message))
 
-dealer_input.read_action()
+threading.Thread(target=start_async_movement, daemon=True).start()
+
+while True:
+    time.sleep(10)

@@ -2,7 +2,7 @@ import os, json
 from dataclasses import asdict
 from ports import GamePersistencePort
 from abc import ABC, abstractmethod
-from machine_core import MovementMessage
+from machine_core import MovementMessage, MovementState
 from external_event_source import ExternalEventSource
 from typing import Iterable
 
@@ -28,7 +28,8 @@ class FileOpponentInterface(OpponentInterface):
             content = json.load(ff)
         return [MovementMessage(
             move=content["move"],
-            game=content["game"],)
+            game=content["game"],
+            player_state=MovementState.YOUR_TURN)
             ]
     
     def send_message(self, message: MovementMessage) -> None:          # I know this implementation blocks the flow

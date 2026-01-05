@@ -45,4 +45,7 @@ class FileGamePersistenceAdapter(GamePersistencePort):
     def next_id(self):
         with open(f"{self.path}/dealer.json", "r") as file:
             game = json.load(file)
+            game["next_id"]+=1
+        with open(f"{self.path}/dealer.json", "w") as file:
+            json.dump(game,file)
         return game["next_id"]
