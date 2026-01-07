@@ -83,14 +83,12 @@ dealer_machine.register(
 
 def start_async_dealer():
     asyncio.run(dealer_machine.main_loop())
+    
 threading.Thread(target=start_async_dealer, daemon=True).start()
 
 movement_message = dealer_input.read_action()
 
-def start_async_movement():
-    asyncio.run(movement_machine.main_loop(movement_message))
 
-threading.Thread(target=start_async_movement, daemon=True).start()
 
 while True:
     time.sleep(10)
