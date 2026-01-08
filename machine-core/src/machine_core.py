@@ -35,8 +35,8 @@ class MovementMessage():
 
 @dataclass
 class DealerMessage():
-    content: str
-    action: Action
+    content: str | None = None
+    action: Action | None = None
     new_game: Players = None
     resign: int = 0
     dealer_state: DealerState = DealerState.READING
@@ -61,10 +61,10 @@ class DealerStateMachine():
     def __init__(self, handler_map: dict[DealerState, DealerStateHandler]):
         self.handler_map = handler_map
 
-    async def main_loop(self, dealer_message: DealerMessage):
-        self.message = dealer_message
+    def main_loop(self):
+        self.message = DealerMessage(dealer_state=DealerState.READING)
         while True:
-            self.message = self.handler_map[self.message.dealer_state](self.message)
+            self.message = self.handler_map[self.message.dealer_state].handle_command(self.message)
             self.message.dealer_state = self.message.next_dealer_state
 
 class MovementStateMachine():
@@ -77,5 +77,5 @@ class MovementStateMachine():
     async def main_loop(self, movement_message: MovementMessage, stop_event: threading.Event):
         self.message = movement_message
         while not stop_event.is_set():
-            self.message = self.handler_map[self.message.player_state](self.message)
+            self.message = self.handler_map[self.message.player_state].handle_movement(self.message)
             self.message.player_state = self.message.next_player_state

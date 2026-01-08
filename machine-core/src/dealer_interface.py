@@ -1,22 +1,22 @@
 import asyncio
-import os
 import threading
 from board import Board
 from keyboard_input import KeyboardInputPort
 from machine_core import Action, DealerState, MovementMessage, MovementState, DealerStateHandler, MovementStateHandler, MovementStateMachine, Players
 
+from opponent_interface import FileOpponentInterface, FileMessageCrossing
 from ports import GamePersistencePort, GameViewerPort
 
 class CommandReader(DealerStateHandler):
 
-    def __init__(self,keyboard: KeyboardInputPort):
+    def __init__(self, keyboard: KeyboardInputPort):
         self.keyboard = keyboard
         
     def handle_command(self, msg):
         action = self.keyboard.read("What to do? play move, change game, start game, resign game or list games ").strip()
         msg.content = action
         msg.next_dealer_state = DealerState.FILTERING
-        return super().handle_command(msg)
+        return msg
 
 class CommandRouter(DealerStateHandler, MovementStateHandler):
     movement: list[str]
@@ -26,11 +26,11 @@ class CommandRouter(DealerStateHandler, MovementStateHandler):
         self.persistence = persistence
         self.user = user
         self.movement = ""
-        self.action_map = {value.value: value.name for value in Action}
+        self.action_map = {value.value: value for value in Action}
 
     
     def handle_command(self, msg):
-        if len(msg.content.upper().split(" ")) > 2:
+        if len(msg.content.upper().split(" ")) > 1:
             command = "_".join(msg.content.upper().split(" ")[0:2])
             if command in self.action_map.keys():
                 if self.action_map[command] == Action.PLAY_MOVE:
@@ -59,11 +59,13 @@ class CommandRouter(DealerStateHandler, MovementStateHandler):
     
 class DealerDispatcher(DealerStateHandler):
 
-    def __init__(self, persistence: GamePersistencePort, movement_machine: MovementStateMachine, user: str, keyboard: KeyboardInputPort):
+    def __init__(self, persistence: GamePersistencePort, game_viewer: GameViewerPort, command_router: CommandRouter, user: str, keyboard: KeyboardInputPort):
         self.user = user
-        self.movement_machine = movement_machine
         self.persistence = persistence
+        self.command_router = command_router
         self.keyboard = keyboard
+        self.game_viewer = game_viewer
+        self.movement_machine = None
         self.stop_event : threading.Event | None = None
         self.action_map = {
             Action.LIST_GAMES: self.list_games,
@@ -83,8 +85,8 @@ class DealerDispatcher(DealerStateHandler):
     
     def list_games(self):
         print("Available games:")
-        for game in [file[5:-5] for file in os.listdir(self.path) if len([l for l in file if l == "_"]) == 1]:
-            game_data = self.game_persistence_port.get_board(game)
+        for game in self.persistence.list_games():
+            game_data = self.persistence.get_board(game)
             white = game_data.white
             black = game_data.black
             print(f"Game ID: {game}, White: {white}, Black: {black}")
@@ -103,11 +105,16 @@ class DealerDispatcher(DealerStateHandler):
             len(board.movements) % 2 == 1 and board.black == self.user,
             len(board.movements) % 2 == 0 and board.white == self.user
         ]
+        against = board.black if board.white == self.user else board.white
         movement_message = MovementMessage(
             game=game_id,
             player_state=MovementState.YOUR_TURN if any(right_turn) else MovementState.THEIR_TURN
         )
-
+        message_crossing = FileMessageCrossing(self.user, against)
+        self.movement_machine = MovementStateMachine({
+            MovementState.THEIR_TURN: FileOpponentInterface(persistence=self.persistence, message_crossing=message_crossing, game_viewer=self.game_viewer),
+            MovementState.YOUR_TURN: self.command_router
+        })
         self.stop_event = threading.Event()
         def start_async_movement():
             asyncio.run(self.movement_machine.main_loop(movement_message, self.stop_event))
@@ -118,9 +125,3 @@ class DealerDispatcher(DealerStateHandler):
         players = Players(white=self.user, black=black)
         board = Board(white=players.white, black=players.black, game_id=self.persistence.next_id())
         self.persistence.burn(board)
-
-dealer_map = {
-    DealerState.READING: CommandReader,
-    DealerState.FILTERING: CommandRouter,
-    DealerState.EXECUTING: DealerDispatcher
-}

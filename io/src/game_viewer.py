@@ -7,10 +7,11 @@ from game_persistence import GamePersistencePort
 
 class TextViewerAdapter(GameViewerPort):
 
-    def __init__(self, persistence: GamePersistencePort):
+    def __init__(self, persistence: GamePersistencePort, user: str):
         self.persistence = persistence
+        self.user = user
     
-    def display(self, game_id: int, user: str) -> list[str]:
+    def display(self, game_id: int) -> list[str]:
         board = self.persistence.get_board(game_id)
         os.system('clear')
         white_representation = ["   a b c d e f g h"]
@@ -26,6 +27,6 @@ class TextViewerAdapter(GameViewerPort):
                     row += ". "
             white_representation.append(row.strip())
         black_representation = [white_representation[index][::-1] for index in range(len(white_representation)-1, -1, -1)]
-        representation = white_representation if user == board.white else black_representation
+        representation = white_representation if self.user == board.white else black_representation
         [print(line) for line in representation]
             

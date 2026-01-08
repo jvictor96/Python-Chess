@@ -49,3 +49,6 @@ class FileGamePersistenceAdapter(GamePersistencePort):
         with open(f"{self.path}/dealer.json", "w") as file:
             json.dump(game,file)
         return game["next_id"]
+    
+    def list_games(self):
+        return [file[5:-5] for file in os.listdir(self.path) if len([l for l in file if l == "_"]) == 1]
