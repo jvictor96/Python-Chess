@@ -26,7 +26,16 @@ class TextViewerAdapter(GameViewerPort):
                 else:
                     row += ". "
             white_representation.append(row.strip())
+        color = "white" if self.user == board.white else "black"
+        right_turn = [
+            len(board.movements) % 2 == 1 and board.black == self.user,
+            len(board.movements) % 2 == 0 and board.white == self.user
+        ]
+        turn = "your" if any(right_turn) else "their"
         black_representation = [white_representation[index][::-1] for index in range(len(white_representation)-1, -1, -1)]
-        representation = white_representation if self.user == board.white else black_representation
+        representation = white_representation if color == "white" else black_representation
+        print(f"game id: {game_id}")
+        print(f"you are playing with the {color} pieces")
+        print(f"it's {turn} turn")
         [print(line) for line in representation]
             

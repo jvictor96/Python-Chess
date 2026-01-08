@@ -27,6 +27,7 @@ class CommandRouter(DealerStateHandler, MovementStateHandler):
         self.user = user
         self.movement = ""
         self.action_map = {value.value: value for value in Action}
+        self.short_map = {f"{key[0]}{key[key.find("_")+1]}": value for key, value in self.action_map.items()}
 
     
     def handle_command(self, msg):
@@ -42,6 +43,17 @@ class CommandRouter(DealerStateHandler, MovementStateHandler):
                     msg.action = self.action_map[command]
                     msg.next_dealer_state = DealerState.EXECUTING
                     return msg
+        command = msg.content.upper().split(" ")[0]
+        if command in self.short_map:
+            if self.short_map[command] == Action.PLAY_MOVE:
+                self.movement = msg.content.split(" ")[1]
+                msg.content = ""
+                msg.next_dealer_state = DealerState.READING
+                return msg
+            else:
+                msg.action = self.short_map[command]
+                msg.next_dealer_state = DealerState.EXECUTING
+                return msg
         msg.content = ""
         msg.action = Action.PRINT_HELP
         msg.next_dealer_state = DealerState.EXECUTING
