@@ -4,7 +4,7 @@ from board import Board
 class GameViewerPort(ABC):
     
     @abstractmethod
-    def display(self, game_id: int, user: str):
+    def display(self, game_id: int):
         pass
 
 class GamePersistencePort(ABC):

@@ -85,7 +85,8 @@ class FileOpponentInterface(MovementStateHandler):
         self.game_viewer = game_viewer
         self.message_crossing = message_crossing   # Here I'm counting that message crossing and game viewer know the user and the opponent
     
-    def handle_movement(self, msg) -> MovementMessage:       
+    def handle_movement(self, msg) -> MovementMessage:    
+        msg.next_player_state = MovementState.THEIR_TURN   
         if message:=self.message_crossing.pop():
             board = self.persistence.get_board(msg.game)
             board.move(message["move"])

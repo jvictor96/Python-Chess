@@ -47,13 +47,14 @@ class CommandRouter(DealerStateHandler, MovementStateHandler):
         msg.next_dealer_state = DealerState.EXECUTING
         return msg
     
-    async def handle_movement(self, msg):
+    def handle_movement(self, msg):
         if not self.movement:
+            msg.next_player_state = MovementState.YOUR_TURN
             return msg
         board = self.persistence.get_board(msg.game)
         board.move(self.movement)
         self.persistence.burn(board)
-        self.game_viewer.display(msg.game, self.user)
+        self.game_viewer.display(msg.game)
         msg.next_player_state = MovementState.THEIR_TURN
         return msg
     
@@ -110,11 +111,13 @@ class DealerDispatcher(DealerStateHandler):
             game=game_id,
             player_state=MovementState.YOUR_TURN if any(right_turn) else MovementState.THEIR_TURN
         )
+        print(movement_message.player_state)
         message_crossing = FileMessageCrossing(self.user, against)
         self.movement_machine = MovementStateMachine({
             MovementState.THEIR_TURN: FileOpponentInterface(persistence=self.persistence, message_crossing=message_crossing, game_viewer=self.game_viewer),
             MovementState.YOUR_TURN: self.command_router
         })
+        self.game_viewer.display(game_id)
         self.stop_event = threading.Event()
         def start_async_movement():
             asyncio.run(self.movement_machine.main_loop(movement_message, self.stop_event))

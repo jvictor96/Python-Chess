@@ -45,7 +45,7 @@ class DealerMessage():
 class MovementStateHandler(ABC):
 
     @abstractmethod
-    def handle_movement(self, msg: MovementMessage) -> DealerMessage:
+    def handle_movement(self, msg: MovementMessage) -> MovementMessage:
         pass
 
 class DealerStateHandler(ABC):
