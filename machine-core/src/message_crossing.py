@@ -16,6 +16,9 @@ class MessageCrossing(ABC):
     @abstractmethod
     def send(self, content: str):
         pass
+    @abstractmethod
+    def send_batch(self, content: str):
+        pass
 
 
 class FileMessageCrossing(MessageCrossing):
@@ -50,6 +53,14 @@ class FileMessageCrossing(MessageCrossing):
         self._thread_send = threading.Thread(target=start_async_send, daemon=True)
         self._thread_send.start()
 
+    def send_batch(self, batch):
+        def start_async_send():
+            for data in batch:
+                with open(f"{self.path}", "w") as ff:
+                    json.dump(data, ff)
+        self._thread_send = threading.Thread(target=start_async_send, daemon=True)
+        self._thread_send.start()
+
     def pop(self):
         try:
             return self.queue.get_nowait()
@@ -77,7 +88,7 @@ class FileMessageCrossing(MessageCrossing):
 
 class MessageCrossingFactory(ABC):
     @abstractmethod
-    def build(opponent: str):
+    def build(opponent: str) -> MessageCrossing:
         pass
 
 class FileMessageCrossingFactory(MessageCrossingFactory):

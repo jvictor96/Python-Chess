@@ -71,6 +71,7 @@ class DealerDispatcher(DealerStateHandler):
         self.keyboard = keyboard
         self.game_viewer = game_viewer
         self.movement_machine = None
+        self.opponent_moves = []
         self.stop_event : threading.Event | None = None
         self.action_map = {
             Action.LIST_GAMES: self.list_games,
@@ -99,6 +100,9 @@ class DealerDispatcher(DealerStateHandler):
     def resign_game(self):
         pass
     
+    def register_opponent_moves(self, opponent_moves):
+        self.opponent_moves = opponent_moves
+
     def change_game(self):
         self.list_games()
         game_id = int(self.keyboard.read("What game ID to do to ").strip())
@@ -120,6 +124,7 @@ class DealerDispatcher(DealerStateHandler):
             MovementState.THEIR_TURN: OpponentInterface(persistence=self.persistence, game_viewer=self.game_viewer, message_crossing=message_crossing),
             MovementState.YOUR_TURN: PlayerInterface(persistence=self.persistence, game_viewer=self.game_viewer, message_crossing=message_crossing, movements=self.movements)
         })
+        message_crossing.send_batch(self.opponent_moves)
         self.game_viewer.display(game_id)
         self.stop_event = threading.Event()
         def start_async_movement():
