@@ -39,3 +39,7 @@ class TextViewerAdapter(GameViewerPort):
         print(f"it's {turn} turn")
         [print(line) for line in representation]
             
+
+class NoViewerAdapter(GameViewerPort):
+    def display(self, game_id):
+        print("display classed at No View Adapter")

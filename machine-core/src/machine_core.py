@@ -1,6 +1,7 @@
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from enum import Enum
 from abc import ABC, abstractmethod
+import json
 import threading
 
 class MovementState(Enum):
@@ -33,6 +34,11 @@ class MovementMessage():
     player_state: MovementState = MovementState.YOUR_TURN
     next_player_state: MovementState = MovementState.YOUR_TURN
 
+    def as_json_string(self):
+        data = asdict(self)
+        data.pop("player_state", None)
+        return json.dumps(data)
+
 @dataclass
 class DealerMessage():
     content: str | None = None
@@ -54,16 +60,21 @@ class DealerStateHandler(ABC):
     def handle_command(self, msg: DealerMessage) -> DealerMessage:
         pass
 
+class DealerMachineMode(Enum):
+    FOR_EVER = "FOR_EVER"
+    WHILE_THERE_ARE_MESSAGES_ON_KEYBOARD = "WHILE_THERE_ARE_MESSAGES_ON_KEYBOARD"
+
 class DealerStateMachine():
     message: DealerMessage
     handler_map: dict[DealerState, DealerStateHandler]
 
-    def __init__(self, handler_map: dict[DealerState, DealerStateHandler]):
+    def __init__(self, handler_map: dict[DealerState, DealerStateHandler], mode = DealerMachineMode.FOR_EVER):
         self.handler_map = handler_map
+        self.mode = mode
 
     def main_loop(self):
         self.message = DealerMessage(dealer_state=DealerState.READING)
-        while True:
+        while self.mode == DealerMachineMode.FOR_EVER or self.message.dealer_state != DealerState.READING or self.handler_map[DealerState.READING].keyboard.outputs:
             self.message = self.handler_map[self.message.dealer_state].handle_command(self.message)
             self.message.dealer_state = self.message.next_dealer_state
 

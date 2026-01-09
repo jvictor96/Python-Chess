@@ -1,10 +1,12 @@
 import asyncio
+import queue
 import threading
 from board import Board
 from keyboard_input import KeyboardInputPort
-from machine_core import Action, DealerState, MovementMessage, MovementState, DealerStateHandler, MovementStateHandler, MovementStateMachine, Players
+from machine_core import Action, DealerState, MovementMessage, MovementState, DealerStateHandler, MovementStateMachine, Players
 
-from opponent_interface import FileOpponentInterface, FileMessageCrossing
+from message_crossing import MessageCrossingFactory
+from opponent_interface import OpponentInterface, PlayerInterface
 from ports import GamePersistencePort, GameViewerPort
 
 class CommandReader(DealerStateHandler):
@@ -18,14 +20,14 @@ class CommandReader(DealerStateHandler):
         msg.next_dealer_state = DealerState.FILTERING
         return msg
 
-class CommandRouter(DealerStateHandler, MovementStateHandler):
-    movement: list[str]
+class CommandRouter(DealerStateHandler):
+    movements: queue.Queue
 
-    def __init__(self, user: str, game_viewer: GameViewerPort, persistence: GamePersistencePort):
+    def __init__(self, user: str, game_viewer: GameViewerPort, persistence: GamePersistencePort, movements: queue.Queue):
         self.game_viewer = game_viewer
         self.persistence = persistence
         self.user = user
-        self.movement = ""
+        self.movements = movements
         self.action_map = {value.value: value for value in Action}
         self.short_map = {f"{key[0]}{key[key.find("_")+1]}": value for key, value in self.action_map.items()}
 
@@ -35,7 +37,7 @@ class CommandRouter(DealerStateHandler, MovementStateHandler):
             command = "_".join(msg.content.upper().split(" ")[0:2])
             if command in self.action_map.keys():
                 if self.action_map[command] == Action.PLAY_MOVE:
-                    self.movement = msg.content.split(" ")[2]
+                    self.movements.put(msg.content.split(" ")[2])
                     msg.content = ""
                     msg.next_dealer_state = DealerState.READING
                     return msg
@@ -58,24 +60,14 @@ class CommandRouter(DealerStateHandler, MovementStateHandler):
         msg.action = Action.PRINT_HELP
         msg.next_dealer_state = DealerState.EXECUTING
         return msg
-    
-    def handle_movement(self, msg):
-        if not self.movement:
-            msg.next_player_state = MovementState.YOUR_TURN
-            return msg
-        board = self.persistence.get_board(msg.game)
-        board.move(self.movement)
-        self.persistence.burn(board)
-        self.game_viewer.display(msg.game)
-        msg.next_player_state = MovementState.THEIR_TURN
-        return msg
-    
+       
 class DealerDispatcher(DealerStateHandler):
 
-    def __init__(self, persistence: GamePersistencePort, game_viewer: GameViewerPort, command_router: CommandRouter, user: str, keyboard: KeyboardInputPort):
+    def __init__(self, movements: list[str], persistence: GamePersistencePort, game_viewer: GameViewerPort, message_crossing_factory: MessageCrossingFactory, user: str, keyboard: KeyboardInputPort):
         self.user = user
         self.persistence = persistence
-        self.command_router = command_router
+        self.movements = movements
+        self.message_crossing_factory = message_crossing_factory
         self.keyboard = keyboard
         self.game_viewer = game_viewer
         self.movement_machine = None
@@ -123,11 +115,10 @@ class DealerDispatcher(DealerStateHandler):
             game=game_id,
             player_state=MovementState.YOUR_TURN if any(right_turn) else MovementState.THEIR_TURN
         )
-        print(movement_message.player_state)
-        message_crossing = FileMessageCrossing(self.user, against)
+        message_crossing = self.message_crossing_factory.build(against)
         self.movement_machine = MovementStateMachine({
-            MovementState.THEIR_TURN: FileOpponentInterface(persistence=self.persistence, message_crossing=message_crossing, game_viewer=self.game_viewer),
-            MovementState.YOUR_TURN: self.command_router
+            MovementState.THEIR_TURN: OpponentInterface(persistence=self.persistence, game_viewer=self.game_viewer, message_crossing=message_crossing),
+            MovementState.YOUR_TURN: PlayerInterface(persistence=self.persistence, game_viewer=self.game_viewer, message_crossing=message_crossing, movements=self.movements)
         })
         self.game_viewer.display(game_id)
         self.stop_event = threading.Event()

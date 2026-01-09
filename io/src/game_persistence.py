@@ -16,9 +16,6 @@ class FileGamePersistenceAdapter(GamePersistencePort):
         if game_id == 0:
             return Board()
         board: Board
-        while f"game_{game_id}.json" not in os.listdir(self.path):
-            print(f"waiting game game_{game_id}.json creation at {os.listdir(self.path)}")
-            time.sleep(1)
         with open(f"{self.path}/game_{game_id}.json", "r") as file:
             game = json.load(file)
             board = Board(

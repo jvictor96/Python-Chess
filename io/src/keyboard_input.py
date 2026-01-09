@@ -17,7 +17,7 @@ class InMemoryKeyboard(KeyboardInputPort):
         self.outputs = []
     
     def read(self, prompt):
-        return self.outputs.pop(0)
+        return self.outputs.pop(0) if self.outputs else ""
     
-    def push_output(self, text):
+    def append_output(self, text):
         self.outputs.append(text)
