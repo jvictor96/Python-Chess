@@ -38,17 +38,19 @@ class FileMessageCrossing(MessageCrossing):
             os.mkfifo(self.path_out)
 
     def listen(self):
-        async def start_async_listen():
+        def worker():
             while not self.stop.is_set():
                 with open(self.path, "r") as ff:
-                    try:
-                        content = json.load(ff)
-                        self.queue.put(content)
-                    except Exception:
-                        break
-        def please_work():
-            asyncio.run(start_async_listen())
-        self._thread = threading.Thread(target=please_work, daemon=True)
+                    for line in ff:
+                        try:
+                            line = line.strip()
+                            if not line:
+                                continue
+                            self.queue.put(json.loads(line))
+                        except Exception:
+                            pass
+
+        self._thread = threading.Thread(target=worker, daemon=True)
         self._thread.start()
 
     def send(self, data):
@@ -57,6 +59,8 @@ class FileMessageCrossing(MessageCrossing):
         async def start_async_send():
             with open(f"{self.path_out}", "w") as ff:
                 json.dump(data, ff)
+                ff.write("\n")
+                ff.flush()
         def please_work():
             asyncio.run(start_async_send())
         self._thread_send = threading.Thread(target=please_work, daemon=True)
@@ -68,6 +72,8 @@ class FileMessageCrossing(MessageCrossing):
             for data in batch:
                 with open(f"{self.path}", "w") as ff:
                     json.dump(data, ff)
+                    ff.write("\n")
+                    ff.flush()
             self.sending_batch = False
         def please_work():
             asyncio.run(start_async_send())

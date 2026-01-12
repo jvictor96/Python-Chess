@@ -14,11 +14,8 @@ class OpponentInterface(MovementStateHandler):
     def handle_movement(self, msg) -> MovementMessage:    
         msg.next_player_state = MovementState.THEIR_TURN   
         if message:=self.message_crossing.pop():
-            if message == "":
-                return msg
-            message = json.loads(message)
             board = self.persistence.get_board(msg.game)
-            board.move(message["move"])
+            board.move(message)
             self.game_viewer.display(msg.game)
             self.persistence.burn(board)
             msg.next_player_state = MovementState.YOUR_TURN
