@@ -74,9 +74,9 @@ class DealerStateMachine():
         self.handler_map = handler_map
         self.mode = mode
 
-    def game_still_playing(self):
-        mc = self.handler_map[DealerState.EXECUTING].message_crossing
-        return (mc and mc.sending_batch)
+    def wait_test_game_end(self):
+        event: threading.Event = self.handler_map[DealerState.EXECUTING].stop_event
+        return not event.wait()
 
     def isnt_done(self):
         return any([
@@ -99,10 +99,18 @@ class MovementStateMachine():
     def __init__(self, handler_map: dict[MovementState, MovementStateHandler]):
         self.handler_map = handler_map
 
+    def stop_if_test_ends(self):
+        if [not self.handler_map[MovementState.YOUR_TURN].movements,
+            not self.handler_map[MovementState.THEIR_TURN].message_crossing.sending_batch]:
+            self.stop_event.set()
+
     async def main_loop(self, movement_message: MovementMessage, stop_event: threading.Event):
         self.message = movement_message
-        while not stop_event.is_set():
-            await asyncio.sleep(.2)
-            print(f"game state {self.message.player_state}", flush=True)
+        self.stop_event = stop_event
+        testing = self.handler_map[MovementState.YOUR_TURN].movements
+        while not self.stop_event.is_set():
+            await asyncio.sleep(.02)
             self.message = self.handler_map[self.message.player_state].handle_movement(self.message)
             self.message.player_state = self.message.next_player_state
+            if testing:
+                self.stop_if_test_ends()
