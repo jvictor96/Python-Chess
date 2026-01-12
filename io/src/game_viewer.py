@@ -42,4 +42,4 @@ class TextViewerAdapter(GameViewerPort):
 
 class NoViewerAdapter(GameViewerPort):
     def display(self, game_id):
-        print("display classed at No View Adapter")
+        print("display called at No View Adapter")

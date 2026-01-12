@@ -43,9 +43,9 @@ def test_i_move_they_move(dealer_machine):
     dispatcher : DealerDispatcher = dealer_machine.handler_map[DealerState.EXECUTING]
     dispatcher.register_opponent_moves(["a7a6", "a6a5", "h7h6", "a8a7"]) # This will actually user the file message crossing under the hood
     keyboard: InMemoryKeyboard = dealer_machine.handler_map[DealerState.READING].keyboard
-    keyboard.append_output("start game")
+    keyboard.append_output("sg")
     keyboard.append_output("gisele")
-    keyboard.append_output("change_game")
+    keyboard.append_output("cg")
     keyboard.append_output("1")
     keyboard.append_output("play move e2e4")
     keyboard.append_output("play move f1c4")
@@ -55,4 +55,4 @@ def test_i_move_they_move(dealer_machine):
     persistence : MemoryGamePersistenceAdapter = dealer_machine.handler_map[DealerState.EXECUTING].persistence
     game = persistence.get_board(1)
     assert game != None
-    assert game.positions["a7"] != None
+    assert game.positions["a5"] != None

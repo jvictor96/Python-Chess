@@ -27,4 +27,4 @@ class MemoryGamePersistenceAdapter(GamePersistencePort):
         return self.id
     
     def list_games(self):
-        return [value for key, value in self.boards.items()]
+        return [key for key, value in self.boards.items()]

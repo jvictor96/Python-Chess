@@ -1,7 +1,9 @@
 from abc import ABC, abstractmethod
+import asyncio
 import os, json
 from queue import Empty, Queue
 import threading
+import time
 
 class MessageCrossing(ABC):
     @abstractmethod
@@ -29,13 +31,14 @@ class FileMessageCrossing(MessageCrossing):
         self.path_out = f"{os.environ['HOME']}/python_chess/{addr_out}.fifo"
         self._thread = None
         self._thread_send = None
+        self.sending_batch = False
         if not os.path.exists(self.path):
             os.mkfifo(self.path)
         if not os.path.exists(self.path_out):
             os.mkfifo(self.path_out)
 
     def listen(self):
-        def start_async_listen():
+        async def start_async_listen():
             while not self.stop.is_set():
                 with open(self.path, "r") as ff:
                     try:
@@ -43,22 +46,32 @@ class FileMessageCrossing(MessageCrossing):
                         self.queue.put(content)
                     except Exception:
                         break
-        self._thread = threading.Thread(target=start_async_listen, daemon=True)
+        def please_work():
+            asyncio.run(start_async_listen())
+        self._thread = threading.Thread(target=please_work, daemon=True)
         self._thread.start()
 
     def send(self, data):
-        def start_async_send():
+        if self.sending_batch:
+            return
+        async def start_async_send():
             with open(f"{self.path}", "w") as ff:
                 json.dump(data, ff)
-        self._thread_send = threading.Thread(target=start_async_send, daemon=True)
+        def please_work():
+            asyncio.run(start_async_send())
+        self._thread_send = threading.Thread(target=please_work, daemon=True)
         self._thread_send.start()
 
     def send_batch(self, batch):
-        def start_async_send():
+        self.sending_batch = True
+        async def start_async_send():
             for data in batch:
                 with open(f"{self.path}", "w") as ff:
                     json.dump(data, ff)
-        self._thread_send = threading.Thread(target=start_async_send, daemon=True)
+            self.sending_batch = False
+        def please_work():
+            asyncio.run(start_async_send())
+        self._thread_send = threading.Thread(target=please_work, daemon=True)
         self._thread_send.start()
 
     def pop(self):

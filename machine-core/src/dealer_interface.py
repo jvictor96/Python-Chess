@@ -71,6 +71,7 @@ class DealerDispatcher(DealerStateHandler):
         self.keyboard = keyboard
         self.game_viewer = game_viewer
         self.movement_machine = None
+        self.message_crossing = None
         self.opponent_moves = []
         self.stop_event : threading.Event | None = None
         self.action_map = {
@@ -119,12 +120,16 @@ class DealerDispatcher(DealerStateHandler):
             game=game_id,
             player_state=MovementState.YOUR_TURN if any(right_turn) else MovementState.THEIR_TURN
         )
-        message_crossing = self.message_crossing_factory.build(against)
+        self.message_crossing = self.message_crossing_factory.build(against)
         self.movement_machine = MovementStateMachine({
-            MovementState.THEIR_TURN: OpponentInterface(persistence=self.persistence, game_viewer=self.game_viewer, message_crossing=message_crossing),
-            MovementState.YOUR_TURN: PlayerInterface(persistence=self.persistence, game_viewer=self.game_viewer, message_crossing=message_crossing, movements=self.movements)
+            MovementState.THEIR_TURN: OpponentInterface(persistence=self.persistence, game_viewer=self.game_viewer, message_crossing=self.message_crossing),
+            MovementState.YOUR_TURN: PlayerInterface(
+                persistence=self.persistence, 
+                game_viewer=self.game_viewer, 
+                message_crossing=self.message_crossing, 
+                movements=self.movements)
         })
-        message_crossing.send_batch(self.opponent_moves)
+        self.message_crossing.send_batch(self.opponent_moves)
         self.game_viewer.display(game_id)
         self.stop_event = threading.Event()
         def start_async_movement():

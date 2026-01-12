@@ -1,3 +1,4 @@
+import asyncio
 from dataclasses import asdict, dataclass
 from enum import Enum
 from abc import ABC, abstractmethod
@@ -37,6 +38,7 @@ class MovementMessage():
     def as_json_string(self):
         data = asdict(self)
         data.pop("player_state", None)
+        data.pop("next_player_state", None)
         return json.dumps(data)
 
 @dataclass
@@ -72,9 +74,18 @@ class DealerStateMachine():
         self.handler_map = handler_map
         self.mode = mode
 
+    def isnt_done(self):
+        mc = self.handler_map[DealerState.EXECUTING].message_crossing
+        return any([
+            self.mode == DealerMachineMode.FOR_EVER,
+            self.message.dealer_state != DealerState.READING,
+            self.handler_map[DealerState.READING].keyboard.outputs,
+            (mc and mc.sending_batch)
+        ])
+
     def main_loop(self):
         self.message = DealerMessage(dealer_state=DealerState.READING)
-        while self.mode == DealerMachineMode.FOR_EVER or self.message.dealer_state != DealerState.READING or self.handler_map[DealerState.READING].keyboard.outputs:
+        while self.isnt_done() :
             self.message = self.handler_map[self.message.dealer_state].handle_command(self.message)
             self.message.dealer_state = self.message.next_dealer_state
 
@@ -88,5 +99,6 @@ class MovementStateMachine():
     async def main_loop(self, movement_message: MovementMessage, stop_event: threading.Event):
         self.message = movement_message
         while not stop_event.is_set():
+            await asyncio.sleep(.02)
             self.message = self.handler_map[self.message.player_state].handle_movement(self.message)
             self.message.player_state = self.message.next_player_state

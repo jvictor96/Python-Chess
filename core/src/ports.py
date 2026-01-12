@@ -22,9 +22,9 @@ class GamePersistencePort(ABC):
         pass
         
     @abstractmethod
-    def next_id(self):
+    def next_id(self) -> int:
         pass 
 
     @abstractmethod
-    def list_games(self):
+    def list_games(self) -> list[Board]:
         pass
