@@ -74,20 +74,23 @@ class DealerStateMachine():
         self.handler_map = handler_map
         self.mode = mode
 
-    def isnt_done(self):
+    def game_still_playing(self):
         mc = self.handler_map[DealerState.EXECUTING].message_crossing
+        return (mc and mc.sending_batch)
+
+    def isnt_done(self):
         return any([
             self.mode == DealerMachineMode.FOR_EVER,
             self.message.dealer_state != DealerState.READING,
-            self.handler_map[DealerState.READING].keyboard.outputs,
-            (mc and mc.sending_batch)
+            self.handler_map[DealerState.READING].keyboard.outputs
         ])
 
     def main_loop(self):
         self.message = DealerMessage(dealer_state=DealerState.READING)
-        while self.isnt_done() :
+        while self.isnt_done():
             self.message = self.handler_map[self.message.dealer_state].handle_command(self.message)
             self.message.dealer_state = self.message.next_dealer_state
+
 
 class MovementStateMachine():
     message: MovementMessage | None
@@ -99,6 +102,7 @@ class MovementStateMachine():
     async def main_loop(self, movement_message: MovementMessage, stop_event: threading.Event):
         self.message = movement_message
         while not stop_event.is_set():
-            await asyncio.sleep(.02)
+            await asyncio.sleep(.2)
+            print(f"game state {self.message.player_state}", flush=True)
             self.message = self.handler_map[self.message.player_state].handle_movement(self.message)
             self.message.player_state = self.message.next_player_state

@@ -55,7 +55,7 @@ class FileMessageCrossing(MessageCrossing):
         if self.sending_batch:
             return
         async def start_async_send():
-            with open(f"{self.path}", "w") as ff:
+            with open(f"{self.path_out}", "w") as ff:
                 json.dump(data, ff)
         def please_work():
             asyncio.run(start_async_send())

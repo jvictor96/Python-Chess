@@ -1,7 +1,6 @@
-from abc import ABC, abstractmethod
 import json
 import queue
-from message_crossing import FileMessageCrossing, MessageCrossing
+from message_crossing import MessageCrossing
 from ports import GamePersistencePort, GameViewerPort
 from machine_core import MovementMessage, MovementState, MovementStateHandler
 
@@ -15,6 +14,8 @@ class OpponentInterface(MovementStateHandler):
     def handle_movement(self, msg) -> MovementMessage:    
         msg.next_player_state = MovementState.THEIR_TURN   
         if message:=self.message_crossing.pop():
+            if message == "":
+                return msg
             message = json.loads(message)
             board = self.persistence.get_board(msg.game)
             board.move(message["move"])

@@ -1,4 +1,5 @@
 import queue
+import time
 import pytest
 
 from dealer_interface import CommandReader, CommandRouter, DealerDispatcher
@@ -52,6 +53,8 @@ def test_i_move_they_move(dealer_machine):
     keyboard.append_output("play move d1f3")
     keyboard.append_output("play move f3f7")
     dealer_machine.main_loop()
+    while dealer_machine.game_still_playing():
+        time.sleep(1)
     persistence : MemoryGamePersistenceAdapter = dealer_machine.handler_map[DealerState.EXECUTING].persistence
     game = persistence.get_board(1)
     assert game != None
