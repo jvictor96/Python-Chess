@@ -1,9 +1,7 @@
 from abc import ABC, abstractmethod
-import asyncio
 import os, json
 from queue import Empty, Queue
 import threading
-import time
 
 class MessageCrossing(ABC):
     @abstractmethod
@@ -32,10 +30,13 @@ class FileMessageCrossing(MessageCrossing):
         self._thread = None
         self._thread_send = None
         self.sending_batch = False
-        if not os.path.exists(self.path):
-            os.mkfifo(self.path)
-        if not os.path.exists(self.path_out):
-            os.mkfifo(self.path_out)
+        self.testing = False
+        if os.path.exists(self.path):
+            os.remove(self.path)
+        os.mkfifo(self.path)
+        if os.path.exists(self.path_out):
+            os.remove(self.path_out)
+        os.mkfifo(self.path_out)
 
     def listen(self):
         def worker():
@@ -54,30 +55,27 @@ class FileMessageCrossing(MessageCrossing):
         self._thread.start()
 
     def send(self, data):
-        if self.sending_batch:
+        if self.testing:
             return
-        async def start_async_send():
+        def worker():
             with open(f"{self.path_out}", "w") as ff:
                 json.dump(data, ff)
                 ff.write("\n")
                 ff.flush()
-        def please_work():
-            asyncio.run(start_async_send())
-        self._thread_send = threading.Thread(target=please_work, daemon=True)
+        self._thread_send = threading.Thread(target=worker, daemon=True)
         self._thread_send.start()
 
     def send_batch(self, batch):
         self.sending_batch = True
-        async def start_async_send():
+        self.testing = True
+        def worker():
             for data in batch:
                 with open(f"{self.path}", "w") as ff:
                     json.dump(data, ff)
                     ff.write("\n")
                     ff.flush()
             self.sending_batch = False
-        def please_work():
-            asyncio.run(start_async_send())
-        self._thread_send = threading.Thread(target=please_work, daemon=True)
+        self._thread_send = threading.Thread(target=worker, daemon=True)
         self._thread_send.start()
 
     def pop(self):

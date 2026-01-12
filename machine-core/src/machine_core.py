@@ -76,7 +76,7 @@ class DealerStateMachine():
 
     def wait_test_game_end(self):
         event: threading.Event = self.handler_map[DealerState.EXECUTING].stop_event
-        event.wait(timeout=2)
+        event.wait(timeout=3)
 
     def isnt_done(self):
         return any([
@@ -100,7 +100,7 @@ class MovementStateMachine():
         self.handler_map = handler_map
 
     def stop_if_test_ends(self):
-        if all([not self.handler_map[MovementState.YOUR_TURN].movements,
+        if all([self.handler_map[MovementState.YOUR_TURN].movements.empty(),
             not self.handler_map[MovementState.THEIR_TURN].message_crossing.sending_batch]):
             self.stop_event.set()
 

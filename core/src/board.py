@@ -18,6 +18,7 @@ class Board:
     legal: bool | None
     white: str
     black: str
+    winner: str
     game_id: int
 
     def __init__(self, pieces: list[Piece] | None = None, movements = None, white: str = None, black: str = None, game_id: int = None):
@@ -47,6 +48,7 @@ class Board:
         self.positions = {piece.position: piece for piece in pieces}
         self.black = black
         self.white = white
+        self.winner = ""
         self.game_id = game_id
 
     def get_king(self, color: Color) -> Piece:
