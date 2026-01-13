@@ -21,6 +21,17 @@ class Board:
     winner: str
     game_id: int
 
+    def clone(self):
+        pieces = []
+        movements = []
+        for piece in self.pieces:
+            pos = Position(piece.position.x, piece.position.y)
+            pieces.append(type(piece)(piece.color, pos))
+        for movement in self.movements:
+            move = Movement.from_string(repr(movement), self.positions)
+            movements.append(move)
+        return Board(pieces = pieces, movements=movements, white=self.white, black=self.black, game_id=self.game_id)
+
     def __init__(self, pieces: list[Piece] | None = None, movements = None, white: str = None, black: str = None, game_id: int = None):
         if pieces == None:
             pieces = []
@@ -64,18 +75,16 @@ class Board:
         movement_candidates = [ [Movement(piece[0], destination, self.positions) for destination in piece[1]] for piece in positions_and_destinations]
         for piece in movement_candidates:
             for movement in piece:
-                print(movement.start_pos)
-                print(movement.end_pos)
-                self.move(repr(movement))
-                if self.legal:
-                    self.update_positions(movement.reverse())
-                    self.movements.pop()
-                    self.movements.pop()
+                board = self.clone()
+                board.move(repr(movement))
+                if board.legal:
+                    print(movement)
                     return False
         return True
 
 
-    def update_positions(self: "Board", movement: Movement, bypass_movements_append: bool = False) -> "Board":
+    def update_positions(self: "Board", movement: str, bypass_movements_append: bool = False) -> "Board":
+        movement: Movement = Movement.from_string(movement, self.positions)
         piece = self.positions.get(movement.start_pos)
         piece.position = movement.end_pos
         if not bypass_movements_append:
@@ -87,7 +96,7 @@ class Board:
 
     def bypass_validation_move(self, movement: str) -> "Board":
         movement = Movement.from_string(movement, self.positions)
-        self.update_positions(movement, bypass_movements_append=True)
+        self.update_positions(repr(movement), bypass_movements_append=True)
 
     def move(self: "Board", movement: str):
         movement: Movement = Movement.from_string(movement, self.positions)
@@ -101,12 +110,14 @@ class Board:
         self.legal = right_turn
         if not self.legal:
             return
-        self.update_positions(movement)
-        self.legal = not self.is_color_in_check(piece.color)
-        if not self.legal:
-            self.update_positions(movement.reverse())
-            self.movements.pop()
-            self.movements.pop()
-        if (self.is_color_in_check({Color.BLACK: Color.WHITE, Color.WHITE: Color.BLACK}[piece.color]) and
-            self.is_color_in_check_mate({Color.BLACK: Color.WHITE, Color.WHITE: Color.BLACK}[piece.color])):
+        board = self.clone()
+        board.update_positions(repr(movement))
+        if board.is_color_in_check(piece.color):
+            self.legal = False
+            return
+        self.update_positions(repr(movement))
+        board = self.clone()
+        if (board.is_color_in_check({Color.BLACK: Color.WHITE, Color.WHITE: Color.BLACK}[piece.color]) and
+            board.is_color_in_check_mate({Color.BLACK: Color.WHITE, Color.WHITE: Color.BLACK}[piece.color])):
             self.winner = {Color.BLACK: self.black, Color.WHITE: self.white}[piece.color]
+            print("checkmate")
