@@ -18,6 +18,17 @@ def clean_board():
         board = Board()
         return board
 
+def test_queen_get_all_possible_destinations(board: Board):
+    destinations = ["d1","d2","d3","d5","d6","d7","d8"
+                   ,"a4","b4","c4","e4","f4","g4","h4"
+                   ,"a7","b6","c5","e3","f2","g1"
+                   ,"a1","b2","c3","e5","f6","g7", "h8"]
+    pd = board.positions["d4"].get_all_possible_destinations()
+    for d in pd:
+        assert d in destinations
+    for d in destinations:
+        assert d in pd
+
 def test_queen_jump_over_pawn_bug(clean_board: Board):
     clean_board.move("d1d3")
     assert clean_board.legal == False

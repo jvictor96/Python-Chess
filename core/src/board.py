@@ -59,6 +59,21 @@ class Board:
         catch_king_candidates:list[Movement] = [Movement.from_string(f"{piece.position}{king.position}", self.positions) for piece in self.pieces if piece.color != color]
         return any([movement.is_valid() for movement in catch_king_candidates])
 
+    def is_color_in_check_mate(self, color):
+        positions_and_destinations = [(piece.position, piece.get_all_possible_destinations()) for piece in self.pieces if piece.color == color]
+        movement_candidates = [ [Movement(piece[0], destination, self.positions) for destination in piece[1]] for piece in positions_and_destinations]
+        for piece in movement_candidates:
+            for movement in piece:
+                print(movement.start_pos)
+                print(movement.end_pos)
+                self.move(repr(movement))
+                if self.legal:
+                    self.update_positions(movement.reverse())
+                    self.movements.pop()
+                    self.movements.pop()
+                    return False
+        return True
+
 
     def update_positions(self: "Board", movement: Movement, bypass_movements_append: bool = False) -> "Board":
         piece = self.positions.get(movement.start_pos)
@@ -79,14 +94,19 @@ class Board:
         piece = self.positions.get(movement.start_pos)
         self.legal = movement.is_valid()
         if not self.legal:
-            return self
+            return
         right_turn = any([
             piece.color == Color.WHITE and len(self.movements) % 2 == 0,
             piece.color == Color.BLACK and len(self.movements) % 2 == 1])
         self.legal = right_turn
         if not self.legal:
-            return self
+            return
         self.update_positions(movement)
         self.legal = not self.is_color_in_check(piece.color)
         if not self.legal:
             self.update_positions(movement.reverse())
+            self.movements.pop()
+            self.movements.pop()
+        if (self.is_color_in_check({Color.BLACK: Color.WHITE, Color.WHITE: Color.BLACK}[piece.color]) and
+            self.is_color_in_check_mate({Color.BLACK: Color.WHITE, Color.WHITE: Color.BLACK}[piece.color])):
+            self.winner = {Color.BLACK: self.black, Color.WHITE: self.white}[piece.color]

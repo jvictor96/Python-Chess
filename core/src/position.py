@@ -26,6 +26,8 @@ class Position:
             return self.__repr__() == other
         return False
         
-    
     def __hash__(self):
         return hash(self.__repr__())
+
+    def is_valid(self):
+        return self.x < 9 and self.x > 0 and self.y < 9 and self.y > 0
