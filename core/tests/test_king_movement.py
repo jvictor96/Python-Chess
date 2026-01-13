@@ -22,10 +22,10 @@ def test_valid_diagonal_down_king_move(board: Board):
     assert board.legal == True
     assert isinstance(board.positions.get("d3", None), King)
 
-def test_valid_right_king_move(board: Board):
+def test_invalid_king_goes_to_check_move(board: Board):
     board.move("e4f4")
-    assert board.legal == True
-    assert isinstance(board.positions.get("f4", None), King)
+    assert board.legal == False
+    assert isinstance(board.positions.get("e4", None), King)
 
 def test_valid_down_king_move(board: Board):
     board.move("e4e3")

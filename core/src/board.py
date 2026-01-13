@@ -1,6 +1,6 @@
 import json
 from movement import Movement
-from piece import Color, Piece, piece_map
+from piece import Color, Piece, piece_map, King
 from position import Position
 
 class BoardSerializer(json.JSONEncoder):
@@ -51,8 +51,14 @@ class Board:
         self.winner = ""
         self.game_id = game_id
 
-    def get_king(self, color: Color) -> Piece:
+    def get_king(self, color: Color) -> King:
         return next(piece for piece in self.pieces if piece.color == color and piece_map[type(piece)] == "K")
+    
+    def is_color_in_check(self, color):
+        king = self.get_king(color)
+        catch_king_candidates:list[Movement] = [Movement.from_string(f"{piece.position}{king.position}", self.positions) for piece in self.pieces if piece.color != color]
+        return any([movement.is_valid() for movement in catch_king_candidates])
+
 
     def update_positions(self: "Board", movement: Movement, bypass_movements_append: bool = False) -> "Board":
         piece = self.positions.get(movement.start_pos)
@@ -78,4 +84,9 @@ class Board:
             piece.color == Color.WHITE and len(self.movements) % 2 == 0,
             piece.color == Color.BLACK and len(self.movements) % 2 == 1])
         self.legal = right_turn
-        self.update_positions(movement) if self.legal else self
+        if not self.legal:
+            return self
+        self.update_positions(movement)
+        self.legal = not self.is_color_in_check(piece.color)
+        if not self.legal:
+            self.update_positions(movement.reverse())
