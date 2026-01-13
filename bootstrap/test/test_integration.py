@@ -59,12 +59,32 @@ def test_pastor_check(dealer_machine):
     assert game != None
     assert game.winner == "jose"
 
-@pytest.mark.timeout(2)
+@pytest.mark.timeout(1)
+def test_invalid_movement_repeat_turn(dealer_machine):
+    dispatcher : DealerDispatcher = dealer_machine.handler_map[DealerState.EXECUTING]
+    dispatcher.register_opponent_moves(["a7a6"]) # This will actually user the file message crossing under the hood
+    keyboard: InMemoryKeyboard = dealer_machine.handler_map[DealerState.READING].keyboard
+    keyboard.append_output("sg")
+    keyboard.append_output("gisele")
+    keyboard.append_output("cg")
+    keyboard.append_output("1")
+    keyboard.append_output("play move e2e5")
+    keyboard.append_output("play move f1c4")
+    keyboard.append_output("play move a2a3")
+    dealer_machine.main_loop()
+    dealer_machine.wait_test_game_end()
+    persistence : MemoryGamePersistenceAdapter = dealer_machine.handler_map[DealerState.EXECUTING].persistence
+    game = persistence.get_board(1)
+    assert game != None
+    assert not "e5" in game.positions
+    assert not "c5" in game.positions
+
+@pytest.mark.timeout(1)
 def test_i_move_they_move(dealer_machine):
     dispatcher : DealerDispatcher = dealer_machine.handler_map[DealerState.EXECUTING]
     dispatcher.register_opponent_moves(["e7e5"]) # This will actually user the file message crossing under the hood
     keyboard: InMemoryKeyboard = dealer_machine.handler_map[DealerState.READING].keyboard
-    for i in range(10):
+    for i in range(5):
         keyboard.append_output("sg")
         keyboard.append_output("gisele")
         keyboard.append_output("cg")

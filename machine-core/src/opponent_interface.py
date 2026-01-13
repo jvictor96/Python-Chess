@@ -16,6 +16,8 @@ class OpponentInterface(MovementStateHandler):
         if message:=self.message_crossing.pop():
             board = self.persistence.get_board(msg.game)
             board.move(message)
+            if not board.legal:
+                return msg
             self.game_viewer.display(msg.game)
             self.persistence.burn(board)
             msg.next_player_state = MovementState.YOUR_TURN
@@ -33,6 +35,8 @@ class PlayerInterface(MovementStateHandler):
         board = self.persistence.get_board(msg.game)
         try:
             board.move(self.movements.get_nowait())
+            if not board.legal:
+                return msg
         except queue.Empty:
             msg.next_player_state = MovementState.YOUR_TURN
             return msg

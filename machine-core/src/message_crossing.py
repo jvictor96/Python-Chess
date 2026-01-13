@@ -23,6 +23,8 @@ class MessageCrossing(ABC):
 
 class FileMessageCrossing(MessageCrossing):
     def __init__(self, addr, addr_out):
+        if not os.path.exists(f"{os.environ['HOME']}/python_chess"):
+            os.makedirs(f"{os.environ['HOME']}/python_chess")
         self.queue = Queue()
         self.stop = threading.Event()
         self.path = f"{os.environ['HOME']}/python_chess/{addr}.fifo"
