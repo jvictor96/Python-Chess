@@ -28,6 +28,9 @@ class Position:
         
     def __hash__(self):
         return hash(self.__repr__())
+    
+    def add(self, x=0, y=0):
+        return Position(self.x + x, self.y + y)
 
     def is_valid(self):
         return self.x < 9 and self.x > 0 and self.y < 9 and self.y > 0

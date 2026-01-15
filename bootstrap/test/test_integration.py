@@ -97,3 +97,22 @@ def test_i_move_they_move(dealer_machine):
         game = persistence.get_board(i+1)
         assert game != None
         assert game.positions["e5"].color == Color.BLACK
+
+@pytest.mark.timeout(1)
+def test_i_move_they_move(dealer_machine):
+    dispatcher : DealerDispatcher = dealer_machine.handler_map[DealerState.EXECUTING]
+    dispatcher.register_opponent_moves(["e7e5"]) # This will actually user the file message crossing under the hood
+    keyboard: InMemoryKeyboard = dealer_machine.handler_map[DealerState.READING].keyboard
+    for i in range(5):
+        keyboard.append_output("sg")
+        keyboard.append_output("gisele")
+        keyboard.append_output("cg")
+        keyboard.append_output(f"{i+1}")
+        keyboard.append_output("play move e2e4")
+        keyboard.append_output("play move e4e5")
+        dealer_machine.main_loop()
+        dealer_machine.wait_test_game_end()
+        persistence : MemoryGamePersistenceAdapter = dealer_machine.handler_map[DealerState.EXECUTING].persistence
+        game = persistence.get_board(i+1)
+        assert game != None
+        assert game.positions["e5"].color == Color.BLACK

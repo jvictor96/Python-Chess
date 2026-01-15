@@ -10,10 +10,12 @@ class Color(Enum):
 class Piece(ABC):
     color: Color
     position: Position
+    moved: bool
 
     def __init__(self, color, position):
         self.color = color
         self.position = position
+        self.moved = False
 
     @abstractmethod
     def is_movement_valid(self, destination: tuple[Position, "Piece"]) -> bool:
@@ -25,6 +27,10 @@ class Piece(ABC):
 
     @abstractmethod
     def get_all_possible_destinations(self) -> list[Position]:
+        pass
+
+    @abstractmethod
+    def is_valid_roque(self, positions: dict[Position, "Piece"], end_pos) -> bool:
         pass
 
 class Rook(Piece):
@@ -53,6 +59,9 @@ class Rook(Piece):
         result = [Position(self.position.x, i) for i in range(1,9) if i != self.position.y]
         result.extend([Position(i, self.position.y) for i in range(1,9) if i != self.position.x])
         return [pos for pos in result if pos.is_valid()]
+    
+    def is_valid_roque(self, positions: dict[Position, "Piece"], end_pos):
+        return False
 
 class Knight(Piece):
     def __init__(self, color, position):
@@ -83,6 +92,9 @@ class Knight(Piece):
         for i in range(8):
             destinations.append(Position(self.position.x+delta_map[i][0], self.position.y+delta_map[i][1]))
         return [pos for pos in destinations if pos.is_valid()]
+    
+    def is_valid_roque(self, positions: dict[Position, "Piece"], end_pos):
+        return False
 
 class Bishop(Piece):
     def __init__(self, color, position):
@@ -108,6 +120,9 @@ class Bishop(Piece):
         result = [Position(min_diag_1.x+i, min_diag_1.y+i) for i in range(0,9-min_diag_1.y) if min_diag_1.x+i != self.position.x]
         result.extend([Position(min_diag_2.x+i, min_diag_2.y-i) for i in range(0,min_diag_2.y) if min_diag_2.x+i != self.position.x])
         return [pos for pos in result if pos.is_valid()]
+    
+    def is_valid_roque(self, positions: dict[Position, "Piece"], end_pos):
+        return False
 
 
 class Queen(Piece):
@@ -146,6 +161,9 @@ class Queen(Piece):
         result.extend([Position(self.position.x, i) for i in range(1,9) if i != self.position.y])
         result.extend([Position(i, self.position.y) for i in range(1,9) if i != self.position.x])
         return [pos for pos in result if pos.is_valid()]
+    
+    def is_valid_roque(self, positions: dict[Position, "Piece"], end_pos):
+        return False
 
 class King(Piece):
     def __init__(self, color, position):
@@ -176,6 +194,18 @@ class King(Piece):
         for i in range(8):
             destinations.append(Position(self.position.x+delta_map[i][0], self.position.y+delta_map[i][1]))
         return [pos for pos in destinations if pos.is_valid()]
+    
+    def is_valid_roque(self, positions: dict[Position, "Piece"], end_pos):
+        if self.position.x + 2 == end_pos.x and \
+            (self.position.add(x=1) in positions or self.position.add(x=2) in positions):
+            return False
+        if not self.moved and self.position.add(x=3) in positions and not positions[self.position.add(x=3)].moved:
+            return True
+        if self.position.x - 2 == end_pos.x and \
+            (self.position.add(x=-1) in positions or self.position.add(x=-2) in positions or self.position.add(x=-3) in positions):
+            return False
+        if not self.moved and self.position.add(x=-4) in positions and not positions[self.position.add(x=-4)].moved:
+            return True
 
 class Pawn(Piece):
     def __init__(self, color, position):
@@ -205,6 +235,9 @@ class Pawn(Piece):
             Position(self.position.x-1,self.position.y + 1),
             ]
         return [pos for pos in destinations if pos.is_valid()]
+    
+    def is_valid_roque(self, positions: dict[Position, "Piece"], end_pos):
+        return False
 
 piece_map = {
     "R": Rook,

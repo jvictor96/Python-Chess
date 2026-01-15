@@ -83,8 +83,7 @@ class Board:
         return True
 
 
-    def update_positions(self: "Board", movement: str, bypass_movements_append: bool = False) -> "Board":
-        movement: Movement = Movement.from_string(movement, self.positions)
+    def update_positions(self: "Board", movement: Movement, bypass_movements_append: bool = False) -> "Board":
         piece = self.positions.get(movement.start_pos)
         piece.position = movement.end_pos
         if not bypass_movements_append:
@@ -92,11 +91,13 @@ class Board:
         self.positions.pop(movement.start_pos)
         self.positions[movement.end_pos] = piece
         self.pieces = [piece for pos, piece in self.positions.items()]
+        if movement.roque:
+            self.update_positions(movement.roque_rook_movement, bypass_movements_append=True)
         return self
 
     def bypass_validation_move(self, movement: str) -> "Board":
         movement = Movement.from_string(movement, self.positions)
-        self.update_positions(repr(movement), bypass_movements_append=True)
+        self.update_positions(movement, bypass_movements_append=True)
 
     def move(self: "Board", movement: str):
         movement: Movement = Movement.from_string(movement, self.positions)
@@ -111,11 +112,11 @@ class Board:
         if not self.legal:
             return
         board = self.clone()
-        board.update_positions(repr(movement))
+        board.update_positions(movement.clone())
         if board.is_color_in_check(piece.color):
             self.legal = False
             return
-        self.update_positions(repr(movement))
+        self.update_positions(movement.clone())
         board = self.clone()
         if (board.is_color_in_check({Color.BLACK: Color.WHITE, Color.WHITE: Color.BLACK}[piece.color]) and
             board.is_color_in_check_mate({Color.BLACK: Color.WHITE, Color.WHITE: Color.BLACK}[piece.color])):
