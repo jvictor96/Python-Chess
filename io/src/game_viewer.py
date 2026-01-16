@@ -41,5 +41,9 @@ class TextViewerAdapter(GameViewerPort):
             
 
 class NoViewerAdapter(GameViewerPort):
+    def __init__(self, persistence: GamePersistencePort):
+        self.persistence = persistence
+
     def display(self, game_id):
-        print("display called at No View Adapter")
+        board = self.persistence.get_board(game_id)
+        print(f"{board.movements}")

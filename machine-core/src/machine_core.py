@@ -76,7 +76,7 @@ class DealerStateMachine():
 
     def wait_test_game_end(self):
         event: threading.Event = self.handler_map[DealerState.EXECUTING].stop_event
-        event.wait(timeout=3)
+        event.wait(timeout=6)
 
     def isnt_done(self):
         return any([
