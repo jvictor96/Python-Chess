@@ -1,5 +1,4 @@
 from board import Board
-from piece import Bishop, Color
 
 import pytest
 
@@ -8,12 +7,15 @@ import pytest
 @pytest.fixture
 def board():
         board = Board()
-        board.bypass_validation_move("h1d4")  
-        board.bypass_validation_move("c1e4")  
+        board.bypass_validation_move("f1f4")  
+        board.bypass_validation_move("g1g4")  
+        board.bypass_validation_move("f8f5")  
+        board.bypass_validation_move("g8g5")  
         return board
 
 def test_minor_roque(board: Board):
-    assert False == True
+    board.move("e1g1")
+    assert board.legal
 
 def test_blocked_minor_roque(board: Board):
     assert False == True
@@ -25,7 +27,8 @@ def test_moved_rook_minor_roque(board: Board):
     assert False == True
 
 def test_major_roque(board: Board):
-    assert False == True
+    board.move("e1a1")
+    assert board.legal
 
 def test_promotion(board: Board):
     assert False == True

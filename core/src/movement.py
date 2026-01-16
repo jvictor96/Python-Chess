@@ -8,7 +8,7 @@ class Movement:
     end_pos: Position
     positions: dict[Position, Piece]
     roque: bool
-    roque_rook_movement: Piece
+    roque_rook_movement: "Movement"
 
     @abstractmethod
     def from_string(p: str, positions: dict[Position, Piece]) -> "Movement":
@@ -20,12 +20,14 @@ class Movement:
     def clone(self):
         movement = Movement.from_string(repr(self), [])
         movement.roque = self.roque
+        movement.roque_rook_movement = self.roque_rook_movement
         return movement
 
     def __init__(self, start_pos: Position, end_pos: Position, positions: list[Position]):
         self.start_pos = start_pos
         self.end_pos = end_pos
         self.positions = positions
+        self.roque_rook_movement = ""
         self.roque = False
 
     def __repr__(self):
@@ -36,26 +38,27 @@ class Movement:
 
     def is_valid(self):
         piece = self.get_piece_in_the_origin()
-        if piece is None:
+        if piece == None:
             return False
         if not piece.moved:
-            if self.end_pos == self.start_pos.add(x=2) and piece.is_valid_roque([self.positions], self.end_pos):
+            if self.end_pos == self.start_pos.add(x=2) and piece.is_valid_roque(self.positions, self.end_pos):
+                print("ROQUE!")
                 self.roque = True
-                self.roque_rook_movement = Movement.from_string(f"{self.start_pos.add(x=3)}{self.start_pos.add(x=1)}")
+                self.roque_rook_movement = Movement.from_string(f"{self.start_pos.add(x=3)}{self.start_pos.add(x=1)}", [])
                 return True
-            if self.end_pos == self.start_pos.add(x=-2) and piece.is_valid_roque([self.positions], self.end_pos):
+            if self.end_pos == self.start_pos.add(x=-2) and piece.is_valid_roque(self.positions, self.end_pos):
                 self.roque = True
                 self.roque_rook_movement = Movement.from_string(f"{self.start_pos.add(x=-4)}{self.start_pos.add(x=-1)}")
                 return True
         return all([
-            self.is_the_path_clear(),
+            self.is_the_path_clear_and_movement_valid(),
             self.is_the_destination_different_from_origin_and_in_the_board(),
             self.is_destinarion_free()])
 
     def get_piece_in_the_origin(self):
         return self.positions.get(self.start_pos, None)
 
-    def is_the_path_clear(self):
+    def is_the_path_clear_and_movement_valid(self):
         piece = self.get_piece_in_the_origin()
         if piece is None:
             return False

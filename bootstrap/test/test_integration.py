@@ -175,4 +175,4 @@ def test_magnus_against_gukesh(dealer_machine):
     game = persistence.get_board(1)
     assert game != None
     assert type(game.positions["f4"]) == King
-    assert type(game.positions["e3"]) == King
+    assert type(game.positions["e2"]) == King
