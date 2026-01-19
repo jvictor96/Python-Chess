@@ -10,31 +10,59 @@ style: |
   section h1 {
     color: #9ECAFF;
   }
+  section h3 {
+    color: #9ECAFF;
+    font-size: 28px;
+  }
+  section h5 {
+    color: #dfedff;
+    font-size: 25px;
+  }
   section pre {
-    font-size: 12px;
+    font-size: 11px;
   }
   section p {
-    font-size: 22px;
+    font-size: 20px;
   }
   section li {
-    font-size: 22px;
+    font-size: 20px;
   }
 ---
 
 # Programando o core do xadrez em 2 dias
+## Usando princípios do livro Refatoração do Martin Fowler
 
 ---
 
-# Primeiro dia - TDD e CI
+### Programando o core do xadrez em 2 dias
 
----
+### Primeiro dia - TDD e CI
 
-### Testes
+##### Testes
 
 No primeiro dia não consegui nenhum resultado sólido. A validação de jogadas só começou a ficar pronta no dia seguinte, mas eu estava focado em conseguir usar extreme programming e CI nesse projeto, então foquei em escrever testes. Ao fim do primeiro dia, além de 8 testes para bispo, havia 7 para cavalo, 8 para peão e 8 para torre.
 
+Ex:
+
+``` python
+def test_valid_horizontal_rook_move():
+    board = Board.move(1, "d4c4")
+    assert board.legal == True
+    assert isinstance(board.positions.get("c4", None), Rook)
+
+def test_invalid_rook_move():
+    board = Board.move(1, "d4c3")
+    assert board.legal == False
+    assert isinstance(board.positions.get("d4", None), Rook)
+```
 
 ---
+
+### Programando o core do xadrez em 2 dias
+
+### Primeiro dia - TDD e CI
+
+##### Testes
 
 A suíte de testes do bispo valida as regras implementadas usando um tabuleiro persistido em json em que o bispo começa na casa e4 e as outras peças nas casas normais de início.
 
@@ -43,11 +71,6 @@ def test_valid_forward_left_biship_move():
     board = Board.move(1, "e4d5")
     assert board.legal == True
     assert isinstance(board.positions.get("d5", None), Bishop)
-
-def test_valid_backward_left_bishop_move():
-    board = Board.move(1, "e4d3")
-    assert board.legal == True
-    assert isinstance(board.positions.get("d3", None), Bishop)
 
 def test_invalid_bishop_move():
     board = Board.move(1, "e4e5")
@@ -63,11 +86,6 @@ def test_bishop_cant_jump_over_ally():
     board = Board.move(1, "e4h1")
     assert board.legal == False
     assert isinstance(board.positions.get("e4", None), Bishop)
-
-def test_bishop_cant_jump_over_opponent():
-    board = Board.move(1, "e4a8")
-    assert board.legal == False
-    assert isinstance(board.positions.get("d4", None), Bishop)
 ```
 
 
@@ -75,9 +93,11 @@ Escrever esses testes ajudou a decidir o contrato responsável por amarrar toda 
 
 ---
 
-### Contrato
+### Programando o core do xadrez em 2 dias
 
-A implementação de move do primeiro dia carregava um tabuleiro, desserializava o movimento e delegava à classe de movimento a validação de regras, passando para ela um dicionário da posição de todas as peças, para que ela pudesse verificar que não haviam peças no caminho, por exemplo. Numa iteração posterior, o método move deixou de ser estático e carregar o tabuleiro para ser aplicado na própria instância de tabuleiro. No primeiro dia ainda não havia nenhuma dependência, injeção, ou lugar para que que isso pudesse acontecer, então a persistência estava um pouco misturada com o domínio.
+### Primeiro dia - TDD e CI
+
+##### Contrato
 
 
 ``` python
@@ -94,9 +114,15 @@ def move(game_id: str, movement: str):
         return board
 ```
 
+Numa iteração posterior, o método move deixou de ser estático e carregar o tabuleiro para ser aplicado na própria instância de tabuleiro. No primeiro dia ainda não havia nenhuma dependência, injeção, ou lugar para que que isso pudesse acontecer, então a persistência estava um pouco misturada com o domínio.
+
 ---
 
-### Polimorfismo
+### Programando o core do xadrez em 2 dias
+
+### Primeiro dia - TDD e CI
+
+##### Polimorfismo
 
 A classe de peças no primeiro dia não servia para muito além de marcar que determinada instância era de determinada implementação de peça e que parte da validação do movimento, específica da peça deveria ficar na própria implementação, evitando condicionais longas para validar o movimento para cada tipo de peça.
 
@@ -124,7 +150,11 @@ Aqui ocultei a implementação de cavalo, bispo rainha, rei e peão, já que tod
 
 ---
 
-### Lógica de domínio
+### Programando o core do xadrez em 2 dias
+
+### Primeiro dia - TDD e CI
+
+##### Lógica de domínio
 
 Esse é o esqueleto da validação de movimentos. Esses métodos não estavam implementados, mas eu estava tentando dar nomes bons.
 
@@ -138,7 +168,7 @@ Esse é o esqueleto da validação de movimentos. Esses métodos não estavam im
             self.king_wont_be_in_check()])
 ```
 
-### Resultado dos testes do primeiro dia
+##### Resultado dos testes do primeiro dia
 
 36 failed, 1 passed in 0.18s
 O teste verde era
@@ -168,7 +198,11 @@ O livro Código Limpo, que estou lendo enquanto termino esse projeto, começa co
 
 ---
 
-### Testes
+### Segundo dia
+
+### Criando mais testes e fazendo-os ficarem verdes
+
+##### Testes
 
 Nos primeiros 2 commits do dia implementei mais 22 testes.
 
@@ -178,7 +212,11 @@ A maior parte do que fiz foi trabalhar nisso até que eu tivesse 56 verdes e 7 v
 
 ---
 
-### Testes
+### Segundo dia
+
+### Criando mais testes e fazendo-os ficarem verdes
+
+##### Testes
 
 Nesse dia coloquei fixtures nos meus testes
 
@@ -192,13 +230,18 @@ def board():
 ```
 
 O tabuleiro 0 é o tabuleiro antes de xadrez arrumado, gravado em como json em um arquivo. Hoje o construtor de Board cria o tabuleiro novo caso não seja passado nenhuma peça no construtor, o tabuleiro arrumado está codificado em python no construtor, já que é uma regra de negócio e não tem relação com a persistência.
-O método bypass_validation_move foi criado só para isso. Escrever código útil para ajudar em testes foi algo que me ajudou muito durante o projeto.
+
+O método bypass_validation_move foi criado só para ser usado nos testes. Escrever código útil para ajudar em testes foi algo que me ajudou muito durante o projeto.
 
 As minhas leituras recentes sobre XP, CI e Agile me convenceram que essa é uma boa bússola e que é possível tornar o código cada vez mais limpo com pequenas modificações em direção a limpeza se houverem testes que sempre comprovem o funcionamento do programa.
 
 ---
 
-### Código
+### Segundo dia
+
+### Criando mais testes e fazendo-os ficarem verdes
+
+##### Código
 
 Adicionei o método get_middle_places na abstração das peças para poder validar o caminho que estavam fazendo.
 
@@ -230,7 +273,11 @@ Gosto de programar declarativamente. Possibilities é um dicionário com apenas 
 
 ---
 
-### Código
+### Segundo dia
+
+### Criando mais testes e fazendo-os ficarem verdes
+
+##### Código
 
 Na camada superior eu tinha.
 
@@ -263,14 +310,6 @@ Na camada superior eu tinha.
 
     def is_destinarion_free(self):
         return self.positions.get(self.end_pos, None) is None or self.positions.get(self.end_pos, None).color != self.get_piece_in_the_origin().color
-
-    def is_the_player_turn(self):
-        # Placeholder for turn validation logic
-        return True
-
-    def king_wont_be_in_check(self):
-        # Placeholder for check validation logic
-        return True
 ```
 
 ---
@@ -281,7 +320,11 @@ Na camada superior eu tinha.
 
 ---
 
-### Composition root
+### Segundo dia
+
+### Organização
+
+##### Composition root
 
 No segundo dia criei um composition root. 
 
@@ -295,6 +338,10 @@ O fluxo de ChessDaemon estava baseado em ler um arquivo com o input do comando e
 
 ---
 
-### Conclusão do segundo dia
+### Segundo dia
 
-A ideia que eu tinha era integrar vários módulos que rodassem de forma independente e manipulassem os arquivos de input e output. No terceiro dia escrevi um shell simples para manipular o arquivo de input e um script para capturar o output. O sistema acabou evoluindo para o DealerDaemon se tornar um máquina de estados rodando em uma máquina de estados em uma thread separa, o que é um destino um pouco óbvio olhando agora, e no lugar de execular vários códigos em threads separadas usando sessões de bash diferentes, que era o que eu imaginava para desacoplamento, foi melhor rodar várias threads no mesmo processo e ter um composition root rico para orquestrar tudo isso.
+### Organização
+
+##### Conclusão do segundo dia
+
+A ideia que eu tinha era integrar vários módulos que rodassem de forma independente e manipulassem os arquivos de input e output. No terceiro dia escrevi um shell simples para manipular o arquivo de input e um script para capturar o output. O sistema acabou evoluindo para o DealerDaemon se tornar um máquina de estados rodando em uma máquina de estados em uma thread separa, o que é um destino um pouco óbvio olhando agora, e no lugar de executar vários códigos em threads separadas usando sessões de bash diferentes, que era o que eu imaginava para desacoplamento, foi melhor rodar várias threads no mesmo processo e ter um composition root rico para orquestrar tudo isso.
