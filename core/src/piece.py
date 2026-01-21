@@ -196,16 +196,18 @@ class King(Piece):
         return [pos for pos in destinations if pos.is_valid()]
     
     def is_valid_roque(self, positions: dict[Position, "Piece"], end_pos):
-        if self.position.x + 2 == end_pos.x and \
-            (self.position.add(x=1) in positions or self.position.add(x=2) in positions):
-            return False
-        if not self.moved and self.position.add(x=3) in positions and not positions[self.position.add(x=3)].moved:
-            return True
-        if self.position.x - 2 == end_pos.x and \
-            (self.position.add(x=-1) in positions or self.position.add(x=-2) in positions or self.position.add(x=-3) in positions):
-            return False
-        if not self.moved and self.position.add(x=-4) in positions and not positions[self.position.add(x=-4)].moved:
-            return True
+        if self.moved:
+            return false
+        if self.position.x + 2 == end_pos.x:
+            if self.position.add(x=1) in positions or self.position.add(x=2) in positions:
+                return False
+            if not self.moved and self.position.add(x=3) in positions and not positions[self.position.add(x=3)].moved:
+                return True
+        if self.position.x - 2 == end_pos.x:
+            if self.position.add(x=-1) in positions or self.position.add(x=-2) in positions or self.position.add(x=-3) in positions:
+                return False
+            if not self.moved and self.position.add(x=-4) in positions and not positions[self.position.add(x=-4)].moved:
+                return True
 
 class Pawn(Piece):
     def __init__(self, color, position):

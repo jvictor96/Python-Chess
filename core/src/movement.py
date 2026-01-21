@@ -42,13 +42,12 @@ class Movement:
             return False
         if not piece.moved:
             if self.end_pos == self.start_pos.add(x=2) and piece.is_valid_roque(self.positions, self.end_pos):
-                print("ROQUE!")
                 self.roque = True
                 self.roque_rook_movement = Movement.from_string(f"{self.start_pos.add(x=3)}{self.start_pos.add(x=1)}", [])
                 return True
             if self.end_pos == self.start_pos.add(x=-2) and piece.is_valid_roque(self.positions, self.end_pos):
                 self.roque = True
-                self.roque_rook_movement = Movement.from_string(f"{self.start_pos.add(x=-4)}{self.start_pos.add(x=-1)}")
+                self.roque_rook_movement = Movement.from_string(f"{self.start_pos.add(x=-4)}{self.start_pos.add(x=-1)}", [])
                 return True
         return all([
             self.is_the_path_clear_and_movement_valid(),

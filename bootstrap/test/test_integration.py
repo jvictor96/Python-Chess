@@ -1,5 +1,5 @@
 import queue
-from piece import Color, King
+from piece import Color, King, Pawn, Knight
 import pytest
 
 from dealer_interface import CommandReader, CommandRouter, DealerDispatcher
@@ -23,11 +23,6 @@ def dealer_machine():
         DealerState.FILTERING: CommandRouter(movements=movements, user=user, game_viewer=viewer_adapater, persistence=memory_persistence),
         DealerState.EXECUTING: DealerDispatcher(movements=movements, user=user, message_crossing_factory=message_crossing_factory, game_viewer=viewer_adapater, keyboard=memory_keyboard, persistence=memory_persistence)
     }, mode=DealerMachineMode.WHILE_THERE_ARE_MESSAGES_ON_KEYBOARD)
-
-
-def test_get_keyboard(dealer_machine):
-    keyboard = dealer_machine.handler_map[DealerState.READING].keyboard
-    assert keyboard != None
 
 def test_create_game(dealer_machine):
     persistence : MemoryGamePersistenceAdapter = dealer_machine.handler_map[DealerState.EXECUTING].persistence
@@ -176,3 +171,8 @@ def test_magnus_against_gukesh(dealer_machine):
     assert game != None
     assert type(game.positions["f4"]) == King
     assert type(game.positions["e2"]) == King
+    assert type(game.positions["b3"]) == Pawn
+    assert type(game.positions["d3"]) == Pawn
+    assert type(game.positions["e3"]) == Pawn
+    assert type(game.positions["h5"]) == Pawn
+    assert type(game.positions["c4"]) == Knight

@@ -116,6 +116,7 @@ class Board:
         if board.is_color_in_check(piece.color):
             self.legal = False
             return
+        piece.moved = True
         self.update_positions(movement.clone())
         board = self.clone()
         if (board.is_color_in_check({Color.BLACK: Color.WHITE, Color.WHITE: Color.BLACK}[piece.color]) and
