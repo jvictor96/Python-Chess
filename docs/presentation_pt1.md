@@ -336,6 +336,8 @@ ChessDaemon().main_loop()
 
 O fluxo de ChessDaemon estava baseado em ler um arquivo com o input do comando e printar o tabuleiro em outro arquivo. O programa já funcionava e testei esse fluxo na prática. Nesse dia consegui escrever essa classe Daemon, responsável por controlar o fluxo dentro do loop, assim ficou mais evidente quando a persistência deveria ser usada e a parte da persistência nasceu como componente isolado do domínio. Porém eu ainda não estava usando ports, adapters e injeção. Escrever tudo isso em dois dias já havia me dado muito trabalho.
 
+PS: No momento em que essa classe foi escrita, me faltava maior precisão no vocabulário usual para componentes de software. O termo worker provavelmente descreveria melhor esse papel do que daemon, já que não se trata de um processo iniciado pelo sistema operacional. Ainda assim, existem semelhanças conceituais relevantes, como a ausência de interface gráfica, o funcionamento orientado a eventos específicos e a natureza de processo assíncrono e de vida longa.
+
 ---
 
 ### Segundo dia
@@ -344,4 +346,4 @@ O fluxo de ChessDaemon estava baseado em ler um arquivo com o input do comando e
 
 ##### Conclusão do segundo dia
 
-A ideia que eu tinha era integrar vários módulos que rodassem de forma independente e manipulassem os arquivos de input e output. No terceiro dia escrevi um shell simples para manipular o arquivo de input e um script para capturar o output. O sistema acabou evoluindo para o DealerDaemon se tornar um máquina de estados rodando em uma máquina de estados em uma thread separa, o que é um destino um pouco óbvio olhando agora, e no lugar de executar vários códigos em threads separadas usando sessões de bash diferentes, que era o que eu imaginava para desacoplamento, foi melhor rodar várias threads no mesmo processo e ter um composition root rico para orquestrar tudo isso.
+A ideia que eu tinha era integrar vários módulos que rodassem de forma independente e manipulassem os arquivos de input e output. No terceiro dia escrevi um shell simples para manipular o arquivo de input e um script para capturar o output. O sistema acabou evoluindo para o DealerDaemon se tornar um máquina de estados rodando em uma máquina de estados em uma thread separada, o que é um destino um pouco óbvio olhando agora, e no lugar de executar vários códigos em terminais separados, que era o que eu imaginava para desacoplamento, foi melhor rodar várias threads no mesmo terminal e ter um composition root rico para orquestrar tudo isso.
