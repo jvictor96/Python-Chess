@@ -101,5 +101,6 @@ def test_moved_rook_minor_roque(board: Board):
     board.move("e1g1")
     assert not board.legal
 
-def test_promotion(board: Board):
-    assert False == True
+def test_major_roque(board: Board):
+    board.move("e1c1")
+    assert board.legal

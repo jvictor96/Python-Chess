@@ -12,20 +12,11 @@ def board():
         board.bypass_validation_move("c1e4")  
         return board
 
-def test_valid_forward_left_biship_move(board: Board):
-    board.move("e4d5")
+@pytest.mark.parametrize("movement", ["e4d5", "e4d3", "e4f5", "e4f3"])
+def test_valid_forward_left_biship_move(board: Board, movement: str):
+    board.move(movement)
     assert board.legal == True
-    assert isinstance(board.positions.get("d5", None), Bishop)
-
-def test_valid_backward_left_bishop_move(board: Board):
-    board.move("e4d3")
-    assert board.legal == True
-    assert isinstance(board.positions.get("d3", None), Bishop)
-
-def test_valid_backward_right_bishop_move(board: Board):
-    board.move("e4f3")
-    assert board.legal == True
-    assert isinstance(board.positions.get("f3", None), Bishop)
+    assert isinstance(board.positions.get(movement[2:4], None), Bishop)
 
 def test_invalid_bishop_move(board: Board):
     board.move("e4e5")
