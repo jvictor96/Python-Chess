@@ -197,7 +197,7 @@ class King(Piece):
     
     def is_valid_roque(self, positions: dict[Position, "Piece"], end_pos):
         if self.moved:
-            return false
+            return False
         if self.position.x + 2 == end_pos.x:
             if self.position.add(x=1) in positions or self.position.add(x=2) in positions:
                 return False
