@@ -7,7 +7,7 @@ on:
 
 jobs:
   qa:
-    uses: jvictor96/qa-agent/.github/workflows/qa-agent.yml@v1
+    uses: jvictor96/QA-agent/.github/workflows/qa-agent.yml@v1
     with:
       reasoning_model: gpt-5-mini
       target_branch: master
