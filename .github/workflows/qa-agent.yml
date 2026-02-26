@@ -10,6 +10,6 @@ jobs:
     uses: jvictor96/QA-agent/.github/workflows/qa_agent.yml@main
     with:
       reasoning_model: gpt-5-mini
-      target_branch: master
+      target_branch: origin/master
     secrets:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
