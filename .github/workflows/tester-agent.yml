@@ -1,0 +1,16 @@
+name: test_analysis
+
+on:
+  workflow_dispatch:
+
+jobs:
+  qa:
+    uses: jvictor96/QA-agent/.github/workflows/qa_agent.yml@main
+    permissions:
+      contents: read
+      issues: write
+    with:
+      reasoning_model: gpt-5-mini
+      mode: test_analysis
+    secrets:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}

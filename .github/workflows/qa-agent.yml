@@ -1,0 +1,16 @@
+name: QA
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [assigned, opened, synchronize, reopened]
+
+jobs:
+  qa:
+    uses: jvictor96/QA-agent/.github/workflows/qa_agent.yml@main
+    permissions:
+      pull-requests: write
+    with:
+      reasoning_model: gpt-5-mini
+    secrets:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
