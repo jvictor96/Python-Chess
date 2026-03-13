@@ -12,6 +12,5 @@ jobs:
       pull-requests: write
     with:
       reasoning_model: gpt-5-mini
-      target_branch: origin/master
     secrets:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
