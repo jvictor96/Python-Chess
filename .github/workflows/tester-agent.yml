@@ -8,6 +8,7 @@ jobs:
     uses: jvictor96/QA-agent/.github/workflows/qa_agent.yml@main
     permissions:
       contents: read
+      pull-requests: write
       issues: write
     with:
       reasoning_model: gpt-5-mini
