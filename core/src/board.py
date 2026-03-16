@@ -2,7 +2,7 @@ import json
 from movement import Movement
 from piece import Color, Piece, piece_map, King
 from position import Position
-
+#
 class BoardSerializer(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, Position):
